@@ -68,6 +68,31 @@ button {
 // ============ FONTS ===========
 
 @font-face {
+  font-family: 'Rubik-Light';
+  src: url("../assets/fonts/Rubik-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'Rubik-Regular';
+  src: url("../assets/fonts/Rubik-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'Rubik-Medium';
+  src: url("../assets/fonts/Rubik-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'Rubik-Bold';
+  src: url("../assets/fonts/Rubik-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'Rubik-Black';
+  src: url("../assets/fonts/Rubik-Black.ttf") format("truetype");
+}
+
+@font-face {
   font-family: 'SFUIDisplay-Ultralight';
   src: url("../assets/fonts/SFUIDisplay-Ultralight.otf") format("opentype");
 }

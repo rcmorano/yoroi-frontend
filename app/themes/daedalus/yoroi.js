@@ -1,19 +1,19 @@
 //  ==== Theme: Yoroi === //
 
 export default {
-  '--preferred-font': '"Times New Roman", serif',
+  '--preferred-font': '"Rubik", sans-serif',
 
-  '--font-ultralight': 'SFUIDisplay-Ultralight',
-  '--font-thin': 'SFUIDisplay-Thin',
-  '--font-light': 'SFUIDisplay-Light',
-  '--font-regular': 'SFUIDisplay-Regular',
-  '--font-medium': 'SFUIDisplay-Medium',
-  '--font-semibold': 'SFUIDisplay-Semibold',
-  '--font-bold': 'SFUIDisplay-Bold',
-  '--font-heavy': 'SFUIDisplay-Heavy',
-  '--font-black': 'SFUIDisplay-Black',
+  '--font-ultralight': 'Rubik-light',
+  '--font-thin': 'Rubik-light',
+  '--font-light': 'Rubik-light',
+  '--font-regular': 'Rubik-Regular',
+  '--font-medium': 'Rubik-Medium',
+  '--font-semibold': 'Rubik-Medium',
+  '--font-bold': 'Rubik-Bold',
+  '--font-heavy': 'Rubik-Bold',
+  '--font-black': 'Rubik-Black',
 
-  '--theme-input-hint-font': 'SFUIDisplay-Regular',
+  '--theme-input-hint-font': 'Rubik-Regular',
 
   '--theme-scrollbar-thumb-background': '#c8ccce',
 
