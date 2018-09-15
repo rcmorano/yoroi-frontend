@@ -27,12 +27,16 @@
 
 .groupDate {
   font-family: var(--font-regular);
-  font-size: 12px;
-  font-weight: 600;
   color: var(--theme-transactions-list-group-date-color);
   margin-bottom: 10px;
-  text-align: center;
   text-transform: uppercase;
+  height: 21px;
+  font-size: 16px;
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.31;
+  letter-spacing: normal;
 }
 
 .showMoreTransactionsButton {

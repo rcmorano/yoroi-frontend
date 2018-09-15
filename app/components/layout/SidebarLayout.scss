@@ -43,10 +43,24 @@ $topBarHeight: 64px;
 }
 
 .testnetWarning {
-  font-family: var(--font-bold);
+  font-family: var(--font-regular);
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: #ffffff;
   text-align: center;
-  color: white;
-  background-color: #b54b4b;
+  background-color: #f5a623;
   padding: 4px;
   text-transform: uppercase;
+}
+
+.icon {
+  margin-right: 5px;
+}
+
+.testnetWarningText {
+  height: 20px;
 }

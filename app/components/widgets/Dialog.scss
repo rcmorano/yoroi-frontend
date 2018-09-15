@@ -6,10 +6,13 @@
   position: relative;
 
   & > .title {
-    font-family: var(--font-medium);
-    font-size: 15px;
-    line-height: 1.39;
-    letter-spacing: 2px;
+    font-family: var(--font-regular);
+    font-style: normal;
+    font-stretch: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.31;
+    letter-spacing: normal;
     margin-bottom: 20px;
     text-align: center;
     text-transform: uppercase;

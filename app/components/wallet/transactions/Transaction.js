@@ -181,14 +181,16 @@ export default class Transaction extends Component<Props, State> {
         <div className={styles.toggler} onClick={this.toggleDetails.bind(this)} role="presentation" aria-hidden>
           <div className={styles.togglerContent}>
             <div className={styles.header}>
-              <div className={styles.title}>
-                {data.type === transactionTypes.EXPEND ?
-                  intl.formatMessage(messages.sent, { currency }) :
-                  intl.formatMessage(messages.received, { currency })
-                }
-              </div>
-              <div className={styles.type}>
-                {moment(data.date).format('hh:mm:ss A')}
+              <div>
+                <div className={styles.title}>
+                  {data.type === transactionTypes.EXPEND ?
+                    intl.formatMessage(messages.sent, { currency }) :
+                    intl.formatMessage(messages.received, { currency })
+                  }
+                </div>
+                <div className={styles.type}>
+                  {moment(data.date).format('hh:mm:ss A')}
+                </div>
               </div>
               {state === transactionStates.OK ? (
                 <div className={styles[assuranceLevel]}>{status}</div>

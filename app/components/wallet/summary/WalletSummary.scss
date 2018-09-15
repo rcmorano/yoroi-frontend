@@ -1,22 +1,24 @@
 %smallText {
-  height: 19px;
-  font-family: var(--font-light);
-  font-size: 20px;
-  line-height: 1.36;
-  letter-spacing: 0.5px;
-  color: var(--theme-bordered-box-text-color);
+  font-size: 30px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.7;
+  letter-spacing: normal;
+  height: 21px;
+  font-family: var(--font-regular);
+  color: var(--theme-transactions-list-number-of-transactions-color);
   margin-bottom: 5px;
   span {
-    font-family: var(--font-medium);
     margin-right: 2px;
   }
 }
 
 .component {
-  text-align: center;
-  border-bottom: 1px solid #dfe4e8;
   margin: 0 auto;
-  width: 80%;
+  margin-top: 50px;
+  margin-bottom: 67px;
+  width: 100%;
 
   :global {
     .BorderedBox_component {

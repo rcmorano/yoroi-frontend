@@ -1,6 +1,11 @@
 .topBar {
   align-items: center;
-  background: var(--theme-topbar-background-color);
+  @if (var(--theme-topbar-background-gradient-first) && var(--theme-topbar-background-gradient-second)) { 
+    background-image: linear-gradient(var(--theme-topbar-background-gradient-style), var(--theme-topbar-background-gradient-first), var(--theme-topbar-background-gradient-second));
+  }
+  @else {
+    background: var(--theme-topbar-background-color);
+  }
   display: flex;
   height: 64px;
   padding: 0;

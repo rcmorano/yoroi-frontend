@@ -4,15 +4,22 @@
 // Css module overrides go here …
 
 .root {
+  width: 363px;
+  height: 52px;
+  font-family: var(--font-regular);
+  font-size: 16px;
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.31;
+  letter-spacing: normal;
+  text-align: center;
+  color: #ffffff;
   background: var(--theme-button-primary-background-color);
-  border-radius: 0;
-  font-size: 14px;
-  font-family: var(--font-medium);
-  height: 40px;
+  border-radius: 8px;
   padding: 12px 20px;
   position: relative;
-  text-transform: none;
-  width: 400px;
+  text-transform: uppercase;
 }
 
 :global {

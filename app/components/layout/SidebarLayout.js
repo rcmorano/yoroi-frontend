@@ -6,6 +6,8 @@ import { intlShape, defineMessages, FormattedMessage } from 'react-intl';
 import { handleExternalLinkClick } from '../../utils/routing';
 import styles from './SidebarLayout.scss';
 import environment from '../../environment';
+import SvgInline from 'react-svg-inline';
+import warningIcon from '../../assets/images/warning.inline.svg';
 
 type Props = {
   children: any | Node,
@@ -70,6 +72,7 @@ export default class SidebarLayout extends Component<Props> {
           {
             environment.isMainnet() ? null : (
               <div className={styles.testnetWarning}>
+                <SvgInline svg={warningIcon} className={styles.icon} cleanup={['title']} />
                 <FormattedMessage {...messages.testnetLabel} values={{ faqLink }} />
               </div>
             )

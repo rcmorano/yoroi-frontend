@@ -3,9 +3,15 @@
   text-align: justify;
 
   h1, h2 {
-    font-family: var(--font-medium);
-    font-size: 17px;
+    font-family: var(--font-regular);
     margin-bottom: 11px;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: 1.31;
+    letter-spacing: normal;
+    color: var(--theme-terms-of-use-title-color);
   }
 
   h2 {
@@ -19,10 +25,13 @@
 
   p, li {
     font-family: var(--font-regular);
-    font-size: 14px;
-    letter-spacing: 0.5px;
-    line-height: 1.38;
+    font-size: 13px;
+    line-height: 1.54;
     margin-bottom: 11px;
+    font-weight: normal;
+    font-style: normal;
+    font-stretch: normal;
+    letter-spacing: normal;
 
     strong {
       font-weight: 500;
