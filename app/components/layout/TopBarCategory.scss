@@ -5,9 +5,14 @@
   align-items: center;
   color: var(--theme-sidebar-category-text-color);
   display: flex;
-  height: 64px;
   justify-content: center;
-  width: 64px;
+  width: 58px;
+  height: 42px;
+  opacity: 0.58;
+  border-radius: 6px;
+  border: solid 1px #ffffff;
+  margin-left: 16px;
+  margin-top: 8px;
 
   &:hover {
     background-color: var(--theme-sidebar-category-background-color-hover);
@@ -65,12 +70,12 @@
 
 .active {
   path {
-    stroke: #daa49a;
-    fill: #daa49a;
+    stroke: #ffffff;
+    fill: #ffffff;
   }
 
   .icon:not(.walletsIcon) path {
-    fill: #daa49a;
+    fill: #ffffff;
   }
 
   &:hover {
@@ -98,6 +103,7 @@
   .TopBarCategory_component {
     position: absolute;
     top: 0;
+    margin-right: 16px;
 
     &.wallets {
       left: 0;

@@ -7,7 +7,7 @@
     background: var(--theme-topbar-background-color);
   }
   display: flex;
-  height: 64px;
+  height: 58px;
   padding: 0;
   position: relative;
   z-index: 100;
@@ -24,8 +24,14 @@
       text-transform: uppercase;
 
       .walletName {
-        font-size: 17px;
-        font-weight: 600;
+        height: 21px;
+        font-family: Rubik;
+        font-size: 16px;
+        font-weight: normal;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1.31;
+        letter-spacing: normal;
         color: var(--theme-topbar-wallet-name-color);
       }
 

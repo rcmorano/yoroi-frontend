@@ -153,9 +153,9 @@ export default {
   '--theme-settings-theme-select-title-color': '#121327',
 
   '--theme-sidebar-background-color': '#49536b',
-  '--theme-sidebar-category-background-color-hover': '#373f52',
+  '--theme-sidebar-category-background-color-hover': '#ffffff',
   '--theme-sidebar-category-background-color-active': '#373f52',
-  '--theme-sidebar-category-text-color': '#fafbfc',
+  '--theme-sidebar-category-text-color': '#ffffff',
   '--theme-sidebar-menu-background-color': '#373f52',
   '--theme-sidebar-menu-item-background-color-hover': '#373f52',
   '--theme-sidebar-menu-item-background-color-active': '#373f52',
