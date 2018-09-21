@@ -57,7 +57,7 @@ export default {
   '--theme-button-primary-background-color-hover': '#edb3a8',
   '--theme-button-primary-background-color-active': '#c4948b',
   '--theme-button-primary-background-color-disabled': '#b5c5d1',
-  '--theme-button-primary-text-color-disabled': '#',
+  '--theme-button-primary-text-color-disabled': '#fafbfc',
   '--theme-button-primary-text-color': '#fafbfc',
 
   '--theme-button-flat-background-color': 'rgba(218, 164, 154, 0.1)',
@@ -68,8 +68,8 @@ export default {
   '--theme-button-flat-text-color': '#121327',
 
   '--theme-checkbox-label-color': '#353535',
-  '--theme-checkbox-border-color': '#daa49a',
-  '--theme-checkbox-background-color-checked': '#daa49a',
+  '--theme-checkbox-border-color': '#3ecd80',
+  '--theme-checkbox-background-color-checked': '#3ecd80',
 
   '--theme-select-arrow-color': '#c6cdd6',
   '--theme-select-arrow-color-open': '#121327',
