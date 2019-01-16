@@ -25,6 +25,7 @@
     "localci-test": "sudo /bin/bash ./features/localCI/wrap_command.sh",
     "build-dll": "rimraf ./dll && webpack --config=webpack/dll.config.js",
     "build-js-cardano-wasm": "./setup_cardano_crypto.sh",
+    "build-js-cardano-wasm2": "./setup_cardano_crypto2.sh",
     "manage-translations": "node ./translations/translation-runner.js",
     "purge-translations": "rimraf ./translations/messages"
   },
