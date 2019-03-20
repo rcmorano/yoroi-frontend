@@ -11,6 +11,11 @@ const hotScript =
   'webpack-hot-middleware/client?path=__webpack_hmr&dynamicPublicPath=true';
 
 const baseDevConfig = () => ({
+  mode: 'development',
+  optimization: {
+    // https://github.com/webpack/webpack/issues/7470
+    nodeEnv: false,
+  },
   devtool: 'eval-source-map',
   entry: {
     yoroi: [
