@@ -15,6 +15,7 @@ env:
   - BROWSER=chrome
   - BROWSER=brave
   - BROWSER=firefox
+env:
   global:
     - RUST_VERSION=1.32.0
     - CARDANO_NETWORK=mainnet   
