@@ -1,59 +1,48 @@
-language: bash
-sudo: true
-#language: node_js
-#node_js: '10'
-cache:
-  directories:
-    - .npm # cache npm's cache
-    #- .cargo # cache cargo's cache
+#language: bash
+#sudo: true
+dist: xenial
+language: node_js
+node_js: '10'
 services:
   - docker
 
+cache:
+  directories:
+    - ~/.npm # cache npm's cache
+    - ~/.cargo # cache cargo's cache
+ 
 env:
   global:
     - RUST_VERSION=1.32.0
-    - NODE_VERSION=10
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
-    - DOCKER_ORG=rcmorano
-    - DOCKER_IMAGE_DEV_ENV=${DOCKER_ORG}/yoroi-${CARDANO_NETWORK}-dev-env:${GIT_SHORT_COMMIT}
-    - DOCKER_IMAGE_STANDALONE=${DOCKER_ORG}/yoroi-standalone
+    - E2E_BRAVE_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:brave
+    - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
+    - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - >
+    curl https://sh.rustup.rs -sSf | sh -s -- -y &&
+    rustup install ${RUST_VERSION} &&
+    rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
 
 # stages order, each must cleanly pass for the next to run
 stages:
-  - build
-  - test
+  - install-depends
+  - tests
+  - e2e-tests
   #- build-dev-env
   #- push-artifacts
 
 jobs:
   include:
-    - stage: build
+    - stage: install-depends
       env:
         - CARDANO_NETWORK=mainnet   
-        - DOCKER_IMAGE_SOURCE=${DOCKER_ORG}/yoroi-src:${GIT_SHORT_COMMIT}
-        - DOCKER_IMAGE_BUILD_ENV=${DOCKER_ORG}/yoroi-build-env:node_${NODE_VERSION}-rust_${RUST_VERSION}
-        - DOCKER_IMAGE_BUILD=${DOCKER_ORG}/yoroi-${CARDANO_NETWORK}:${GIT_SHORT_COMMIT}
       script:
         - >
-          docker pull ${DOCKER_IMAGE_BUILD_ENV} || 
-          (
-            docker build \
-              --build-arg NODE_VERSION=${NODE_VERSION} \
-              --build-arg RUST_VERSION=${RUST_VERSION} \
-              -f Dockerfile.build-env -t ${DOCKER_IMAGE_BUILD_ENV} .
-            docker tag ${DOCKER_IMAGE_BUILD_ENV} rust-env-setup
-            docker push ${DOCKER_IMAGE_BUILD_ENV};
-          )
-        - >
-          docker build \
-            --build-arg CARDANO_NETWORK=${CARDANO_NETWORK} \
-            --build-arg DOCKER_IMAGE_SOURCE=${DOCKER_IMAGE_SOURCE} \
-            --build-arg DOCKER_IMAGE_BUILD_ENV=${DOCKER_IMAGE_BUILD_ENV} \
-            -f Dockerfile.yoroi-build -t ${DOCKER_IMAGE_BUILD} .
-          
+          npm ci
+
     #- <<: *build
     #   env:
     #    - CARDANO_NETWORK=testnet
@@ -61,22 +50,32 @@ jobs:
     #   env:
     #    - CARDANO_NETWORK=mainnet   
 
-    - stage: test
-      env:
-        - CARDANO_NETWORK=mainnet
-        - DOCKER_IMAGE_BUILD=${DOCKER_ORG}/yoroi-${CARDANO_NETWORK}:${GIT_SHORT_COMMIT}
+    - stage: tests
       script:
-        - > 
-          docker run -it --entrypoint=bash ${DOCKER_IMAGE_BUILD} -c "
-          set -e;
-          # code quality checks
-          npm run flow;
-          npm run eslint;
-          # javascript tests
-          npm run jest;
-          # create extensions to be consumed by browsers
-          npm run test-prepare
-          "
+        # code quality checks
+        - npm run flow
+        - npm run eslint
+        # javascript tests
+        - npm run jest
+        # create extensions to be consumed by browsers
+        - npm run test-prepare
+
+    - stage: e2e-tests
+      env:
+        - BROWSER=chrome
+        - BROWSER=brave
+        - BROWSER=firefox
+      script: 
+        - >
+          #if [ `echo "$TRAVIS_BRANCH" 
+          DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
+          docker run -it \ 
+            -v ${PWD}:/src \
+            -w /src \
+            --entrypoint=bash \
+            ${!DOCKER_IMAGE} -c "
+            npm run test-e2e-${BROWSER}
+            ";
           
     #- stage: build-dev-env
     #- stage: push-artifacts
@@ -89,15 +88,15 @@ jobs:
     #      docker push $DOCKER_IMAGE:latest;
     #      docker push $DOCKER_IMAGE:$DOCKER_IMAGE_TIMESTAMP-$DOCKER_IMAGE_COMMIT;
 
-    - stage: prepare-cache
-      script: 
-        - >
-          docker cp $(docker create ${DOCKER_IMAGE_BUILD}):/root/.npm .
-          chown -R ${id -u}:${id -g} .
+    #- stage: prepare-cache
+    #  script: 
+    #    - >
+    #      docker cp $(docker create ${DOCKER_IMAGE_BUILD}):/root/.npm .
+    #      chown -R ${id -u}:${id -g} .
 
 notifications:
   slack:
     on_success: change
     on_failure: always
-    # notify ${DOCKER_ORG}
+    # notify rcmorano
     secure: kHi8Xliok2qLhuSIZDIGHUfe8EEGFGyfHViBQP40zK7arvI/8kY5h1OtBVP/s/BE3DRdzlM9IJ7R+B7dM8wuKpWflEB9mkamy0wTvEnIS4gIEGd50kDt0bcTxcEgPfJM4IVPwwEQrhd+ftX6YJ4bEQJioDWz+GGCtJXCFtmTj+mvMiySUpKKckwJj2tPQmnS/dCPpgcjLe/GSD3dCpsFvx1jfT3OJkJjkAdmUQlcHsFEtzWgcdgIPUX6OtB75zO1BJyutvTZ04bkQCcO5pZzOjd99BPmF2wqaS/ukD2KcMWUadcpSdi0CGxUN5FH02JlmJd6C6Im03I4SKYE+PKE1EUstx+DQaQ2sKvhKoN2fmK0SgLt2V6X4vlG3c/ofWT/nH6HljayHpetdnNgGIk66Ry7BApIs7oj53Cqe0q8vwN6vHwFHetcPWNHi0B48BYMcaAyNLNQCYEa6QEmiLibWiWWMFRpM1SJTrOow78CSitfK6hsGpbFjoGd0gGXwLbhQFvOzWg7IbJ4dNwi7S21Tat4qBs//j5DT9QrofvRPh83HnLs6W3IRJpuGFfxHp5DRGCigB7VQlgEHZED010gbuBa7i5JMSCy0vyn13uX5HJ6xYDXGT0W8NFY3/pIATiQCD8hP1JzhgRjQxa4JeCsZH5gu7gKXwDkQcwF7ehL+jM=
