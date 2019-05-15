@@ -43,6 +43,7 @@ jobs:
         - npm ci
 
     - stage: tests
+      script:
         # code quality checks
         - npm run flow
         - npm run eslint
