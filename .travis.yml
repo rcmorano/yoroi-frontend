@@ -21,7 +21,6 @@ before_install:
 
 # stages order, each must cleanly pass for the next to run
 stages:
-  - build-env-setup
   - build
   - test
   #- build-dev-env
@@ -29,10 +28,12 @@ stages:
 
 jobs:
   include:
-    - stage: build-env-setup
+    - stage: build
       env:
+        - CARDANO_NETWORK=mainnet   
         - DOCKER_IMAGE_SOURCE=rcmorano/yoroi-src:${TRAVIS_COMMIT:7}
         - DOCKER_IMAGE_BUILD_ENV=rcmorano/yoroi-build-env:node_${NODE_VERSION}-rust_${RUST_VERSION}
+        - DOCKER_IMAGE_BUILD=rcmorano/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT:7}
       script:
         - >
           docker pull ${DOCKER_IMAGE_SOURCE} ||
@@ -45,16 +46,8 @@ jobs:
             docker build --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV} .
             docker push ${DOCKER_IMAGE_BUILD_ENV};
           )
+        - docker build --build-arg DOCKER_IMAGE_BUILD_ENV=${DOCKER_IMAGE_BUILD_ENV} --target yoroi-build -t ${DOCKER_IMAGE_BUILD} .
           
-    #- &build
-    - stage: build
-      env:
-        - CARDANO_NETWORK=mainnet   
-        - DOCKER_IMAGE_BUILD=rcmorano/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT:7}
-      script: 
-        - >
-          docker build --target yoroi-build -t ${DOCKER_IMAGE_BUILD} .
-
     #- <<: *build
     #   env:
     #    - CARDANO_NETWORK=testnet
