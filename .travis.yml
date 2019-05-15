@@ -12,17 +12,15 @@ cache:
     - ~/.cargo # cache cargo's cache
  
 env:
+  - RUST_VERSION=1.32.0
+  - CARDANO_NETWORK=mainnet   
   - BROWSER=chrome
   - BROWSER=brave
   - BROWSER=firefox
-env:
-  global:
-    - RUST_VERSION=1.32.0
-    - CARDANO_NETWORK=mainnet   
-    - E2E_BRAVE_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:brave
-    - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
-    - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
-    - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
+  - E2E_BRAVE_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:brave
+  - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
+  - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
+  - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
