@@ -40,7 +40,7 @@ jobs:
           docker build -t ${DOCKER_IMAGE_SOURCE} -f Dockerfile.src .
         - >
           docker pull ${DOCKER_IMAGE_BUILD_ENV} || 
-          docker build --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV}
+          docker build --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV} .
           
     - stage: build
       env:
