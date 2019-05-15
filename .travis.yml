@@ -13,15 +13,14 @@ build:
   - docker build
 
 env:
-  - CARDANO_NETWORK=testnet
-  - CARDANO_NETWORK=mainnet
-  - RUST_VERSION=1.32.0
-  - NODE_VERSION=10
-  - DOCKER_IMAGE_SOURCE=emurgornd/yoroi-src:${TRAVIS_COMMIT}
-  - DOCKER_IMAGE_BUILD_ENV=emurgornd/yoroi-build-env:node_${NODE_VERSION}-rust_${RUST_VERSION}
-  - DOCKER_IMAGE_BUILD=emurgornd/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT}
-  - DOCKER_IMAGE_DEV_ENV=emurgornd/yoroi-dev-env
-  - DOCKER_IMAGE_STANDALONE=emurgornd/yoroi-standalone
+  global:
+    - RUST_VERSION=1.32.0
+    - NODE_VERSION=10
+    - DOCKER_IMAGE_SOURCE=emurgornd/yoroi-src:${TRAVIS_COMMIT}
+    - DOCKER_IMAGE_BUILD_ENV=emurgornd/yoroi-build-env:node_${NODE_VERSION}-rust_${RUST_VERSION}
+    - DOCKER_IMAGE_BUILD=emurgornd/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT}
+    - DOCKER_IMAGE_DEV_ENV=emurgornd/yoroi-dev-env
+    - DOCKER_IMAGE_STANDALONE=emurgornd/yoroi-standalone
 
 # stages order, each must cleanly pass for the next to run
 stages:
@@ -44,6 +43,9 @@ jobs:
           docker build --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV}
           
     - stage: build
+      env:
+        - CARDANO_NETWORK=testnet
+        - CARDANO_NETWORK=mainnet
       script: 
         - >
           docker build --target yoroi-build -t ${DOCKER_IMAGE_BUILD} .
