@@ -9,9 +9,6 @@ cache:
 services:
   - docker
 
-build:
-  - docker build
-
 env:
   global:
     - RUST_VERSION=1.32.0
@@ -49,20 +46,21 @@ jobs:
             docker push ${DOCKER_IMAGE_BUILD_ENV};
           )
           
-    - &build
-      stage: build
+    #- &build
+    - stage: build
       env:
+        - CARDANO_NETWORK=mainnet   
         - DOCKER_IMAGE_BUILD=rcmorano/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT:7}
       script: 
         - >
           docker build --target yoroi-build -t ${DOCKER_IMAGE_BUILD} .
 
-    - <<: *build
-       env:
-        - CARDANO_NETWORK=testnet
-    - <<: *build
-       env:
-        - CARDANO_NETWORK=mainnet   
+    #- <<: *build
+    #   env:
+    #    - CARDANO_NETWORK=testnet
+    #- <<: *build
+    #   env:
+    #    - CARDANO_NETWORK=mainnet   
 
     - stage: test
       env:
