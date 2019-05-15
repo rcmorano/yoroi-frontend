@@ -7,7 +7,7 @@ ARG RUST_VERSION=1.32.0
 ENV RUST_VERSION ${RUST_VERSION}
 
 COPY ./docker-assets/bin/rust-setup.functions /src/docker-assets/bin/rust-setup.functions
-RUN /bin/bash -c 'source docker-assets/bin/rust-setup.functions && \
+RUN /bin/bash -c 'source /src/docker-assets/bin/rust-setup.functions && \
     rust-setup'
 
 # yoroi artifacts output image
@@ -26,10 +26,10 @@ ENV CODEBASE ${CODEBASE}
 COPY --from=${DOCKER_IMAGE_SOURCE} /src /src
 
 COPY ./docker-assets/bin/yoroi-setup.functions /src/docker-assets/bin/yoroi-setup.functions
-RUN /bin/bash -c 'source docker-assets/bin/yoroi-setup.functions && \
+RUN /bin/bash -c 'source /src/docker-assets/bin/yoroi-setup.functions && \
     yoroi-depends-install'
 
-RUN /bin/bash -c 'source docker-assets/bin/yoroi-setup.functions && \
+RUN /bin/bash -c 'source /src/docker-assets/bin/yoroi-setup.functions && \
     yoroi-build'
 
 # development environment for the build
@@ -38,7 +38,7 @@ ENV DOCKER_IMAGE_BUILD ${DOCKER_IMAGE_BUILD}
 FROM ${DOCKER_IMAGE_BUILD} AS dev-env
 COPY --from=yoroi-build /src /src
 COPY ./docker-assets/bin/entrypoint* /src/docker-assets/bin/
-RUN /bin/bash -c 'source docker-assets/bin/entrypoint.functions && \
+RUN /bin/bash -c 'source /src/docker-assets/bin/entrypoint.functions && \
     setup-sudoers && \
     sudo chmod +x /src/docker-assets/bin/entrypoint'
 ENTRYPOINT ["/src/docker-assets/bin/entrypoint"]
