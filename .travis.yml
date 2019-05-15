@@ -12,12 +12,16 @@ cache:
     - ~/.cargo # cache cargo's cache
  
 env:
+  - BROWSER=chrome
+  - BROWSER=brave
+  - BROWSER=firefox
   global:
     - RUST_VERSION=1.32.0
-    - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
+    - CARDANO_NETWORK=mainnet   
     - E2E_BRAVE_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:brave
     - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
     - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
+    - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
@@ -30,73 +34,23 @@ before_install:
     fi;
     sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
 
-# stages order, each must cleanly pass for the next to run
-stages:
-  - install-depends
-  - tests
-  - e2e-tests
-  #- build-dev-env
-  #- push-artifacts
+script: 
+  - npm ci
+  # code quality checks
+  - npm run flow
+  - npm run eslint
+  # javascript tests
+  - npm run jest
+  # create extensions to be consumed by browsers
+  - npm run test-prepare
 
 jobs:
   include:
-    - stage: install-depends
-      env:
-        - CARDANO_NETWORK=mainnet   
-      script:
-        - >
-          npm ci
-
-    #- <<: *build
-    #   env:
-    #    - CARDANO_NETWORK=testnet
-    #- <<: *build
-    #   env:
-    #    - CARDANO_NETWORK=mainnet   
-
-    - stage: tests
-      script:
-        # code quality checks
-        - npm run flow
-        - npm run eslint
-        # javascript tests
-        - npm run jest
-        # create extensions to be consumed by browsers
-        - npm run test-prepare
-
     - stage: e2e-tests
-      env:
-        - BROWSER=chrome
-        - BROWSER=brave
-        - BROWSER=firefox
       script: 
-        - >
-          DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
-          docker run -it
-            -v ${PWD}:/src
-            -w /src
-            --entrypoint=bash
-            ${!DOCKER_IMAGE} -c "
-            npm run test-e2e-${BROWSER}
-            "
+        - DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
+        - docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
           
-    #- stage: build-dev-env
-    #- stage: push-artifacts
-    #  if: (branch = develop) OR (branch = master)
-    #  script: 
-    #    - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    #      DOCKER_IMAGE_COMMIT=$(git log -1 --pretty=format:'%h');
-    #      DOCKER_IMAGE_TIMESTAMP=$(docker inspect -f '{{ .Created }}' ${DOCKER_IMAGE}|awk -F':' '{print $1$2}'|sed 's%-\|T%%g');
-    #      docker tag $DOCKER_IMAGE:latest $DOCKER_IMAGE:$DOCKER_IMAGE_TIMESTAMP-$DOCKER_IMAGE_COMMIT;
-    #      docker push $DOCKER_IMAGE:latest;
-    #      docker push $DOCKER_IMAGE:$DOCKER_IMAGE_TIMESTAMP-$DOCKER_IMAGE_COMMIT;
-
-    #- stage: prepare-cache
-    #  script: 
-    #    - >
-    #      docker cp $(docker create ${DOCKER_IMAGE_BUILD}):/root/.npm .
-    #      chown -R ${id -u}:${id -g} .
-
 notifications:
   slack:
     on_success: change
