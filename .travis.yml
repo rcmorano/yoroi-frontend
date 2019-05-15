@@ -34,20 +34,19 @@ before_install:
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
     sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
+install: npm ci
+script:
+  - npm ci
+  # code quality checks
+  - npm run flow
+  - npm run eslint
+  # javascript tests
+  - npm run jest
+  # create extensions to be consumed by browsers
+  - npm run test-prepare
 
 jobs:
   include:
-    - stage: build
-      script: 
-        - npm ci
-        # code quality checks
-        - npm run flow
-        - npm run eslint
-        # javascript tests
-        - npm run jest
-        # create extensions to be consumed by browsers
-        - npm run test-prepare
-
     - stage: E2E-tests
       script: 
         - DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
