@@ -16,11 +16,11 @@ env:
   global:
     - RUST_VERSION=1.32.0
     - NODE_VERSION=10
-    - DOCKER_IMAGE_SOURCE=emurgornd/yoroi-src:${TRAVIS_COMMIT}
-    - DOCKER_IMAGE_BUILD_ENV=emurgornd/yoroi-build-env:node_${NODE_VERSION}-rust_${RUST_VERSION}
-    - DOCKER_IMAGE_BUILD=emurgornd/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT}
-    - DOCKER_IMAGE_DEV_ENV=emurgornd/yoroi-dev-env
-    - DOCKER_IMAGE_STANDALONE=emurgornd/yoroi-standalone
+    - DOCKER_IMAGE_SOURCE=rcmorano/yoroi-src:${TRAVIS_COMMIT}
+    - DOCKER_IMAGE_BUILD_ENV=rcmorano/yoroi-build-env:node_${NODE_VERSION}-rust_${RUST_VERSION}
+    - DOCKER_IMAGE_BUILD=rcmorano/yoroi-${CARDANO_NETWORK}:${TRAVIS_COMMIT}
+    - DOCKER_IMAGE_DEV_ENV=rcmorano/yoroi-dev-env
+    - DOCKER_IMAGE_STANDALONE=rcmorano/yoroi-standalone
 
 docker-login: docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
