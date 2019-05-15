@@ -22,6 +22,8 @@ env:
     - DOCKER_IMAGE_DEV_ENV=emurgornd/yoroi-dev-env
     - DOCKER_IMAGE_STANDALONE=emurgornd/yoroi-standalone
 
+docker-login: docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+
 # stages order, each must cleanly pass for the next to run
 stages:
   - build-env-setup
@@ -37,10 +39,15 @@ jobs:
       script:
         - >
           docker pull ${DOCKER_IMAGE_SOURCE} ||
-          docker build -t ${DOCKER_IMAGE_SOURCE} -f Dockerfile.src .
+          ( 
+            docker build -t ${DOCKER_IMAGE_SOURCE} -f Dockerfile.src .
+          )
         - >
           docker pull ${DOCKER_IMAGE_BUILD_ENV} || 
-          docker build --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV} .
+          (
+            docker build --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV} .
+            docker push ${DOCKER_IMAGE_BUILD_ENV};
+          )
           
     - stage: build
       env:
