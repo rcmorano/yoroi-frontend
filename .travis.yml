@@ -22,10 +22,10 @@ env:
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - >
-    if [ ! -e "$HOME/.cargo/bin" ]; \
+    if [ ! -e "$HOME/.cargo/bin" ];
     then
-      curl https://sh.rustup.rs -sSf | sh -s -- -y &&
-      rustup install ${RUST_VERSION} &&
+      curl https://sh.rustup.rs -sSf | sh -s -- -y;
+      rustup install ${RUST_VERSION};
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
     sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
