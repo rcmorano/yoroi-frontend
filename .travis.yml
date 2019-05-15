@@ -40,7 +40,8 @@ jobs:
         - >
           docker pull ${DOCKER_IMAGE_SOURCE} ||
           ( 
-            docker build -t ${DOCKER_IMAGE_SOURCE} -f Dockerfile.src .
+            docker build \
+              -f Dockerfile.src -t ${DOCKER_IMAGE_SOURCE} .
           )
         - >
           docker pull ${DOCKER_IMAGE_BUILD_ENV} || 
@@ -48,7 +49,7 @@ jobs:
             docker build \
               --build-arg NODE_VERSION=${NODE_VERSION} \
               --build-arg RUST_VERSION=${RUST_VERSION} \
-              --target rust-env-setup -t ${DOCKER_IMAGE_BUILD_ENV} .
+              -f Dockerfile.build-env -t ${DOCKER_IMAGE_BUILD_ENV} .
             docker tag ${DOCKER_IMAGE_BUILD_ENV} rust-env-setup
             docker push ${DOCKER_IMAGE_BUILD_ENV};
           )
@@ -57,7 +58,7 @@ jobs:
             --build-arg CARDANO_NETWORK=${CARDANO_NETWORK} \
             --build-arg DOCKER_IMAGE_SOURCE=${DOCKER_IMAGE_SOURCE} \
             --build-arg DOCKER_IMAGE_BUILD_ENV=${DOCKER_IMAGE_BUILD_ENV} \
-            --target yoroi-build -t ${DOCKER_IMAGE_BUILD} .
+            -f Dockerfile.yoroi-build -t ${DOCKER_IMAGE_BUILD} .
           
     #- <<: *build
     #   env:
