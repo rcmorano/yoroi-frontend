@@ -22,7 +22,8 @@ env:
     - DOCKER_IMAGE_DEV_ENV=rcmorano/yoroi-dev-env
     - DOCKER_IMAGE_STANDALONE=rcmorano/yoroi-standalone
 
-docker-login: docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+before_install:
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 # stages order, each must cleanly pass for the next to run
 stages:
