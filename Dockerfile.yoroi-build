@@ -1,6 +1,5 @@
 # yoroi artifacts output image
 ARG DOCKER_IMAGE_BUILD_ENV=emurgornd/yoroi-build-env:latest
-FROM ${DOCKER_IMAGE_SOURCE} AS yoroi-src
 FROM ${DOCKER_IMAGE_BUILD_ENV} AS yoroi-build
 ENV DOCKER_IMAGE_BUILD_ENV ${DOCKER_IMAGE_BUILD_ENV}
 ARG CARDANO_NETWORK=mainnet
@@ -12,7 +11,7 @@ ENV APP_ID ${APP_ID}
 ARG CODEBASE=https://www.sample.com/dw/yoroi-extension.crx
 ENV CODEBASE ${CODEBASE}
 
-COPY --from=yoroi-src /src /src
+COPY ./ /src
 
 COPY ./docker-assets/bin/yoroi-setup.functions /src/docker-assets/bin/yoroi-setup.functions
 RUN /bin/bash -c 'source /src/docker-assets/bin/yoroi-setup.functions && \
