@@ -38,12 +38,6 @@ jobs:
         - DOCKER_IMAGE_BUILD=${DOCKER_ORG}/yoroi-${CARDANO_NETWORK}:${GIT_SHORT_COMMIT}
       script:
         - >
-          docker pull ${DOCKER_IMAGE_SOURCE} ||
-          ( 
-            docker build \
-              -f Dockerfile.src -t ${DOCKER_IMAGE_SOURCE} .
-          )
-        - >
           docker pull ${DOCKER_IMAGE_BUILD_ENV} || 
           (
             docker build \
