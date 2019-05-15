@@ -30,44 +30,47 @@ before_install:
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
     sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
+install: npm ci
 
 stages:
-  - install-depends
   - tests
   - E2E-tests
 
 jobs:
   include:
-    - stage: install-depends
-      script:
-        - npm ci
-
     - stage: tests
-      script:
-        # code quality checks
-        - npm run flow
-        - npm run eslint
-        # javascript tests
-        - npm run jest
-        # create extensions to be consumed by browsers
-        - npm run test-prepare
+      name: "flow checks"
+      script: npm run flow
+    - stage: tests
+      name: "eslint checks"
+      script: npm run eslint
+    - stage: tests
+      name: "jest checks"
+      script: npm run jest
+
 
     - stage: E2E-tests
       env: BROWSER=chrome
       script: 
-        - DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
-        - docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - npm run test-prepare
+        - >
+          export DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
+          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
     - stage: E2E-tests
       env: BROWSER=firefox
       script: 
-        - DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
-        - docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - npm run test-prepare
+        - >
+          export DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
+          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
     - stage: E2E-tests
       if: branch = master
       env: BROWSER=brave
       script: 
-        - DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
-        - docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - npm run test-prepare
+        - >
+          export DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
+          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
           
 notifications:
   slack:
