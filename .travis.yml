@@ -71,15 +71,14 @@ jobs:
         - BROWSER=firefox
       script: 
         - >
-          #if [ `echo "$TRAVIS_BRANCH" 
           DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
-          docker run -it \ 
-            -v ${PWD}:/src \
-            -w /src \
-            --entrypoint=bash \
+          docker run -it
+            -v ${PWD}:/src
+            -w /src
+            --entrypoint=bash
             ${!DOCKER_IMAGE} -c "
             npm run test-e2e-${BROWSER}
-            ";
+            "
           
     #- stage: build-dev-env
     #- stage: push-artifacts
