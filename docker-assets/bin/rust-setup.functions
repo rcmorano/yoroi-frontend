@@ -6,10 +6,14 @@ function rust-setup() {
   curl https://sh.rustup.rs -sSf | sh -s -- -y
   sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/
 
-  # use 1.32.0 version. 
-  # // TODO: This is hardcoded but taken from js-cardano-wasm repo
-  # which is checked out later
-  rustup install 1.32.0 && \
-  rustup target add wasm32-unknown-unknown --toolchain 1.32.0
+  if [ "${RUST_VERSION}" == "nightly" ]
+  then
+    rustup toolchain install nightly
+    rustup update
+    rustup target add wasm32-unknown-unknown --toolchain nightly
+  else
+    rustup install ${RUST_VERSION} && \
+    rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
+  fi
 
 }
