@@ -4,7 +4,7 @@ function rust-setup() {
 
   # install rustup
   curl https://sh.rustup.rs -sSf | sh -s -- -y
-  sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/
+  ln -s $HOME/.cargo/bin/* /usr/local/bin/
 
   if [ "${RUST_VERSION}" == "nightly" ]
   then
