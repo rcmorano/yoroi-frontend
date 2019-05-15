@@ -13,6 +13,7 @@ RUN /bin/bash -c 'source /src/docker-assets/bin/rust-setup.functions && \
 # yoroi artifacts output image
 ARG DOCKER_IMAGE_BUILD_ENV=rust-env-setup
 ENV DOCKER_IMAGE_BUILD_ENV ${DOCKER_IMAGE_BUILD_ENV}
+FROM ${DOCKER_IMAGE_SOURCE} AS yoroi-src
 FROM ${DOCKER_IMAGE_BUILD_ENV} AS yoroi-build
 ARG CARDANO_NETWORK=mainnet
 ENV CARDANO_NETWORK ${CARDANO_NETWORK}
@@ -23,7 +24,7 @@ ENV APP_ID ${APP_ID}
 ARG CODEBASE=https://www.sample.com/dw/yoroi-extension.crx
 ENV CODEBASE ${CODEBASE}
 
-COPY --from=${DOCKER_IMAGE_SOURCE} /src /src
+COPY --from=yoroi-src /src /src
 
 COPY ./docker-assets/bin/yoroi-setup.functions /src/docker-assets/bin/yoroi-setup.functions
 RUN /bin/bash -c 'source /src/docker-assets/bin/yoroi-setup.functions && \
