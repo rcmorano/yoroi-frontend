@@ -19,11 +19,9 @@ env:
   - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
   - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
   - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
-
-env:
-  - BROWSER=chrome
-  - BROWSER=brave
-  - BROWSER=firefox
+- BROWSER=chrome
+- BROWSER=brave
+- BROWSER=firefox
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
