@@ -35,19 +35,20 @@ before_install:
     fi;
     sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
 
-script: 
-  - npm ci
-  # code quality checks
-  - npm run flow
-  - npm run eslint
-  # javascript tests
-  - npm run jest
-  # create extensions to be consumed by browsers
-  - npm run test-prepare
-
 jobs:
   include:
-    - stage: e2e-tests
+    - stage: build
+      script: 
+        - npm ci
+        # code quality checks
+        - npm run flow
+        - npm run eslint
+        # javascript tests
+        - npm run jest
+        # create extensions to be consumed by browsers
+        - npm run test-prepare
+
+    - stage: E2E-tests
       script: 
         - DOCKER_IMAGE=E2E_${BROWSER}_DOCKER_IMAGE;
         - docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${!DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
