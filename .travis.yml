@@ -1,5 +1,5 @@
 #language: bash
-#sudo: true
+sudo: true
 dist: xenial
 language: node_js
 node_js: '10'
@@ -23,6 +23,7 @@ before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - >
     curl https://sh.rustup.rs -sSf | sh -s -- -y &&
+    ln -s $HOME/.cargo/bin/* /usr/local/bin/ &&
     rustup install ${RUST_VERSION} &&
     rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
 
