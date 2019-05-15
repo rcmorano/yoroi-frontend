@@ -3,7 +3,6 @@
 function yoroi-depends-install() {
 
   set -e
-  sudo chown -R $(id -u):$(id -g) /src /usr/local/lib/node_modules
   npm ci
   
 }
