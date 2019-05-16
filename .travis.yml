@@ -166,7 +166,7 @@ matrix:
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
-      if: branch = master
+      #if: branch = master
       env: 
         - BROWSER=brave
         - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
