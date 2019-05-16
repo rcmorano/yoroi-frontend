@@ -57,7 +57,7 @@ _e2e_tests:
   # install brave, chrome or firefox
   install: &_e2e_tests_install
     - >
-    set -eo pipefail;
+      set -eo pipefail;
       if [ "${BROWSER}" == "brave" ];
       then
         curl -sL https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
