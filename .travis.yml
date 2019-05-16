@@ -44,8 +44,9 @@ stages:
 _e2e_tests:
   script: &_e2e_tests
     - >
+      echo ${DOCKER_IMAGE} &&
       ls -hl build &&
-      cp -a build/*crx . &&
+      mv build/*crx . &&
       docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
 _build_yoroi:
@@ -55,6 +56,7 @@ _build_yoroi:
       then
         echo Triggering by ${BROWSER} travisci to create caches;
         npm run test-prepare;
+        mv *crx build/;
         touch build/${GIT_SHORT_COMMIT}.built;
       fi 
 
@@ -100,18 +102,16 @@ matrix:
       env:
         - BROWSER=chrome
       # this avoids to create a new matrix (reuses cache)
-      script:
-        - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-        <<: *_e2e_tests
+      script: export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
+      script: *_e2e_tests
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
       env:
         - BROWSER=firefox
       # this avoids to create a new matrix (reuses cache)
-      script: 
-        - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-        <<: *_e2e_tests
+      script: export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
+      script: *_e2e_tests
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -119,9 +119,8 @@ matrix:
       env: 
         - BROWSER=brave
       # this avoids to create a new matrix (reuses cache)
-      script: 
-        - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-        <<: *_e2e_tests
+      script: export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
+      script: *_e2e_tests
 
   allow_failures:
     - stage: build-docker
