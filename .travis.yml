@@ -102,7 +102,7 @@ matrix:
       # this avoids to create a new matrix (reuses cache)
       script:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-        *_e2e_tests
+        <<: *_e2e_tests
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -111,7 +111,7 @@ matrix:
       # this avoids to create a new matrix (reuses cache)
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-        *_e2e_tests
+        <<: *_e2e_tests
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -121,7 +121,7 @@ matrix:
       # this avoids to create a new matrix (reuses cache)
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-        *_e2e_tests
+        <<: *_e2e_tests
 
   allow_failures:
     - stage: build-docker
