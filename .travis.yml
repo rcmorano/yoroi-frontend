@@ -21,6 +21,10 @@ env:
     - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
     - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
+  matrix:
+    - BROWSER=brave
+    - BROWSER=chrome
+    - BROWSER=firefox
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
@@ -55,12 +59,15 @@ jobs:
 
     - stage: code-qa
       name: "flow checks"
+      env: BROWSER=none
       script: npm run flow
     - stage: code-qa
       name: "eslint checks"
+      env: BROWSER=none
       script: npm run eslint
     - stage: code-qa
       name: "jest checks"
+      env: BROWSER=none
       script: npm run jest
 
 
@@ -72,6 +79,7 @@ jobs:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
         - >
           ls -hl build;
+          cp -a build/*crx .;
           docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
     - stage: e2e-tests
@@ -82,6 +90,7 @@ jobs:
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
         - >
           ls -hl build;
+          cp -a build/*crx .;
           docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
     - stage: e2e-tests
@@ -93,6 +102,7 @@ jobs:
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
         - >
           ls -hl build;
+          cp -a build/*crx .;
           docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
           
 notifications:
