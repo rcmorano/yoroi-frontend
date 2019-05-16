@@ -37,8 +37,8 @@ install:
   - npm ci
 
 stages:
-  - build
   - code-qa
+  - build
   - e2e-tests
 
 jobs:
