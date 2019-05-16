@@ -42,19 +42,19 @@ stages:
   - e2e-tests
 
 _e2e_tests: &_e2e_tests
-  - >
-    ls -hl build;
-    cp -a build/*crx .;
-    docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - >
+          ls -hl build;
+          cp -a build/*crx .;
+          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
 _build_yoroi: &_build_yoroi
-  - >
-    if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
-    then
-      echo Triggering by ${BROWSER} travisci to create caches;
-      npm run test-prepare;
-      touch build/${GIT_SHORT_COMMIT}.built;
-    fi 
+        - >
+        if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
+        then
+          echo Triggering by ${BROWSER} travisci to create caches;
+          npm run test-prepare;
+          touch build/${GIT_SHORT_COMMIT}.built;
+        fi 
 
 matrix:
   fast_finish: true
@@ -67,19 +67,19 @@ matrix:
       env:
         - BROWSER=brave
       script:
-      - <<: *_build_yoroi
+- <<: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (chrome)"
       env:
         - BROWSER=chrome
       script:
-      - <<: *_build_yoroi
+- <<: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (firefox)"
       env:
         - BROWSER=firefox
       script:
-      - <<: *_build_yoroi
+- <<: *_build_yoroi
 
 
     - stage: code-qa
@@ -103,7 +103,7 @@ matrix:
       script:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
       script: 
-      - <<: *_e2e_tests
+- <<: *_e2e_tests
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -112,7 +112,7 @@ matrix:
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
       script:
-      - <<: *_e2e_tests
+- <<: *_e2e_tests
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -122,7 +122,7 @@ matrix:
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
       script:
-      - <<: *_e2e_tests
+- <<: *_e2e_tests
 
   allow_failures:
     - stage: build-docker
