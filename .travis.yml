@@ -53,7 +53,7 @@ jobs:
         - >
           if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
           then
-            echo "Triggering ${BROWSER} travisci build to create caches :)";
+            echo Triggering ${BROWSER} travisci build to create caches;
             npm run test-prepare;
             touch build/${GIT_SHORT_COMMIT}.built;
           fi 
