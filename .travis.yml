@@ -130,7 +130,7 @@ matrix:
 
     # This is to create cache for 'build' to be used in e2e-tests
     - stage: build-yoroi
-      if: branch = master
+      #if: branch = master
       name: "build Yoroi extension (brave)"
       env:
         - BROWSER=brave
