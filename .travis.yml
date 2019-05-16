@@ -46,13 +46,14 @@ stages:
   - e2e-tests
 
 aliases:
-  - &e2e_tests
+  e2e_tests: &e2e_tests
     - >
       ls -hl build;
       cp -a build/*crx .;
       docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
-jobs:
+matrix:
+  fast_finish: true
   include:
 
     - stage: test
@@ -89,7 +90,7 @@ jobs:
         - BROWSER=chrome
       script:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-        - *e2e_test
+        - <: *e2e_test
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -97,7 +98,7 @@ jobs:
         - BROWSER=firefox
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-        - *e2e_test
+        - <: *e2e_test
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -106,7 +107,11 @@ jobs:
         - BROWSER=brave
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-        - *e2e_test
+        - <: *e2e_test
+
+  allow_failures:
+    - stage: build-docker
+      script: true
           
 notifications:
   slack:
