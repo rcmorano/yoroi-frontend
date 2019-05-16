@@ -35,14 +35,23 @@ before_install:
 
 install: 
   - npm ci
-  - npm run test-prepare
 
 stages:
+  - build
   - code-qa
   - e2e-tests
 
 jobs:
   include:
+    - stage: build
+      name: "build Yoroi extenstion"
+      script:
+        - >
+          if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
+          then
+            npm run test-prepare;
+            touch build/${GIT_SHORT_COMMIT}.built;
+          fi 
 
     - stage: code-qa
       name: "flow checks"
