@@ -65,47 +65,35 @@ jobs:
 
 
     - stage: e2e-tests
-      name: "End-to-End tests"
+      name: "Chrome End-to-End tests"
       env:
         - BROWSER=chrome
       script: 
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
         - >
-          docker run -it 
-            -v ${PWD}:/src 
-            -w /src 
-            --entrypoint=bash 
-            ${DOCKER_IMAGE}
-            -c "npm run test-e2e-${BROWSER}"
+          ls -hl build;
+          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
     - stage: e2e-tests
-      name: "End-to-End tests"
+      name: "Firefox End-to-End tests"
       env:
         - BROWSER=firefox
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
         - >
-          docker run -it 
-            -v ${PWD}:/src
-            -w /src 
-            --entrypoint=bash 
-            ${DOCKER_IMAGE}
-            -c "npm run test-e2e-${BROWSER}"
+          ls -hl build;
+          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
     - stage: e2e-tests
-      name: "End-to-End tests"
+      name: "Brave End-to-End tests"
       if: branch = master
       env: 
         - BROWSER=brave
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
         - >
-          docker run -it 
-            -v ${PWD}:/src
-            -w /src 
-            --entrypoint=bash 
-            ${DOCKER_IMAGE}
-            -c "npm run test-e2e-${BROWSER}"
+          ls -hl build;
+          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
           
 notifications:
   slack:
