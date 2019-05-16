@@ -42,14 +42,16 @@ install:
 
 stages:
   - code-qa
-  - test
+  - build-yoroi
   - e2e-tests
 
 jobs:
   include:
 
-    # it's called test (special travis stage) in order to trigger matrix
     - stage: test
+      if: branch = DISABLED
+
+    - stage: build-yoroi
       name: "build Yoroi extenstion"
       script:
         - >
