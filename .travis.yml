@@ -48,6 +48,7 @@ _e2e_tests:
       echo ${DOCKER_IMAGE} &&
       ls -hl build &&
       cp -a artifacts/*crx . &&
+      cp -a artifacts/*xpi . &&
       docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
 _build_yoroi:
@@ -57,7 +58,7 @@ _build_yoroi:
       then
         echo Triggering by ${BROWSER} travisci to create caches;
         npm run test-prepare;
-        mv *crx artifacts/;
+        mv *crx *xpi artifacts/;
         touch build/${GIT_SHORT_COMMIT}.built;
       fi 
 
