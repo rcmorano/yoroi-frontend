@@ -104,7 +104,7 @@ _e2e_tests:
         sudo rm -f /usr/local/bin/firefox;
         sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
       fi;
-      sudo ln -s ${PWD}/node_modules/.bin/* /usr/local/bin
+      npm install # it seems 'npm ci' has some troubles with devDepends
       
   script: &_e2e_tests_script
     - >
@@ -134,26 +134,12 @@ matrix:
     # 3x in order to satisfy (build|artifacts) cache for e2e-tests
     - stage: build-yoroi
       #if: branch = master
-      name: "build Yoroi extension (brave)"
+      name: "build Yoroi extension"
       env:
         - BROWSER=chrome
         - BROWSER=firefox
         - BROWSER=brave
       script: *_build_yoroi_script
-#    - stage: build-yoroi
-#      name: "build Yoroi extension (chrome)"
-#      env:
-#        - BROWSER=firefox
-#        - BROWSER=brave
-#        - BROWSER=chrome
-#      script: *_build_yoroi_script
-#    - stage: build-yoroi
-#      name: "build Yoroi extension (firefox)"
-#      env:
-#        - BROWSER=brave
-#        - BROWSER=chrome
-#        - BROWSER=firefox
-#      script: *_build_yoroi_script
 
 
     # stage: code-qa
@@ -168,7 +154,7 @@ matrix:
       script: npm run jest
 
     # stage: e2e-tests
-    # NOTE: 3x env is a hack to share cache from build-yoroi stage. Last envvar prevails.
+    # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last envvar prevails.
     - stage: e2e-tests
       name: "Brave End-to-End tests"
       #if: branch = master
