@@ -72,7 +72,7 @@ jobs:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
         - >
           ls -hl build;
-          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -82,7 +82,7 @@ jobs:
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
         - >
           ls -hl build;
-          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -93,7 +93,7 @@ jobs:
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
         - >
           ls -hl build;
-          docker run -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
           
 notifications:
   slack:
