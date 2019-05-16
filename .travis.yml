@@ -104,7 +104,7 @@ _e2e_tests:
         sudo rm -f /usr/local/bin/firefox;
         sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
       fi;
-      npm install # it seems 'npm ci' has some troubles with devDepends
+      npm install;
       sudo apt-get install -qqy openssh-server;
       sudo service ssh start;
       SSH_RAND_PORT=$(shuf -n1 -i 1025-65000);
