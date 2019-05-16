@@ -45,6 +45,13 @@ stages:
   - build-yoroi
   - e2e-tests
 
+aliases:
+  - &e2e_tests
+    - >
+      ls -hl build;
+      cp -a build/*crx .;
+      docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+
 jobs:
   include:
 
@@ -80,12 +87,9 @@ jobs:
       name: "Chrome End-to-End tests"
       env:
         - BROWSER=chrome
-      script: 
+      script:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-        - >
-          ls -hl build;
-          cp -a build/*crx .;
-          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - *e2e_test
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -93,10 +97,7 @@ jobs:
         - BROWSER=firefox
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-        - >
-          ls -hl build;
-          cp -a build/*crx .;
-          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - *e2e_test
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -105,10 +106,7 @@ jobs:
         - BROWSER=brave
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-        - >
-          ls -hl build;
-          cp -a build/*crx .;
-          docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+        - *e2e_test
           
 notifications:
   slack:
