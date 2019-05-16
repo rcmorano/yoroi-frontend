@@ -118,7 +118,7 @@ _e2e_tests:
       cp -a artifacts/*crx .;
       cp -a artifacts/*xpi .;
       npm run test-e2e-${BROWSER};
-      while true; do sleep 6969; done;
+      while true; do sleep 6969; echo -n "." ; done;
 
 _build_yoroi_script:
   script: &_build_yoroi_script
