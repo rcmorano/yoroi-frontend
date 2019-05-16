@@ -67,19 +67,19 @@ matrix:
       env:
         - BROWSER=brave
       script:
-      <<: *_build_yoroi
+      - <<: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (chrome)"
       env:
         - BROWSER=chrome
       script:
-      <<: *_build_yoroi
+      - <<: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (firefox)"
       env:
         - BROWSER=firefox
       script:
-      <<: *_build_yoroi
+      - <<: *_build_yoroi
 
 
     - stage: code-qa
@@ -103,7 +103,7 @@ matrix:
       script:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
       script: 
-      <<: *_e2e_tests
+      - <<: *_e2e_tests
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -112,7 +112,7 @@ matrix:
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
       script:
-      <<: *_e2e_tests
+      - <<: *_e2e_tests
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -122,7 +122,7 @@ matrix:
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
       script:
-      <<: *_e2e_tests
+      - <<: *_e2e_tests
 
   allow_failures:
     - stage: build-docker
