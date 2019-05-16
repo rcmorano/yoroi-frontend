@@ -66,19 +66,19 @@ matrix:
       env:
         - BROWSER=brave
       script:
-      - <<: *_build_yoroi
+        - <<: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (chrome)"
       env:
         - BROWSER=chrome
       script:
-      - <<: *_build_yoroi
+        - <<: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (firefox)"
       env:
         - BROWSER=firefox
       script:
-      - <<: *_build_yoroi
+        - <<: *_build_yoroi
 
 
     - stage: code-qa
