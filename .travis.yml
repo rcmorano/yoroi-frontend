@@ -5,6 +5,7 @@ language: node_js
 node_js: '10'
 services:
   - docker
+ -  xvfb
 
 cache:
   directories:
@@ -16,12 +17,20 @@ cache:
  
 env:
   global:
+    # runtime versions
     - RUST_VERSION=1.32.0
-    - CARDANO_NETWORK=mainnet
+    # browser versions
+    - FIREFOX_NIGHTLY=67.0b8
+    - CHROME_VERSION=google-chrome-stable
+    # Xorg config
+    - SCREEN_RESOLUTION=1280x1024x24
+    # docker images
     - E2E_BRAVE_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:brave
     - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
     - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
+    # misc
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
+    - CARDANO_NETWORK=mainnet
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
@@ -43,17 +52,70 @@ stages:
   - e2e-tests
 
 _e2e_tests:
-  script: &_e2e_tests
+  install: &_e2e_tests_install
+    # install brave, chrome or firefox
     - >
-      echo ${DOCKER_IMAGE} &&
-      ls -hl build &&
-      cp -a artifacts/*crx . &&
-      cp -a artifacts/*xpi . &&
-      docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+      set -euo pipefail;
+      if [ "${BROWSER}" == "brave" ];
+      then
+        curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
+        source /etc/lsb-release;
+        echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/brave-browser-release-${UBUNTU_CODENAME}.list;
+        sudo apt-get update -qqy;
+        sudo apt-get install -qqy brave-keyring brave-browser;
+        BRAVE_VERSION=$(apt-cache policy brave-browser|grep -i installed | awk "{print \$NF}");
+        curl -o /tmp/chromedriver_linux64.zip -L https://github.com/brave/brave-browser/releases/download/v${BRAVE_VERSION}/chromedriver-v${BRAVE_CHROMEDRIVER_VER}-linux-x64.zip;
+        unzip /tmp/chromedriver_linux64.zip -d /tmp;
+        rm -rf chromedriver_linux64.zip;
+        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
+        sudo chmod +x /usr/local/bin/chromedriver;
+      fi;
+      if [ "${BROWSER}" == "chrome" ];
+      then
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -;
+        echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list;
+        apt-get update -qqy;
+        apt-get install -qqy ${CHROME_VERSION:-google-chrome-stable};
+        CHROME_STRING=$(google-chrome --version);
+        CHROME_VERSION_STRING=$(echo "${CHROME_STRING}" | grep -oP "\d+\.\d+\.\d+\.\d+");
+        CHROME_MAYOR_VERSION=$(echo "${CHROME_VERSION_STRING%%.*}");
+        wget --no-verbose -O /tmp/LATEST_RELEASE "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAYOR_VERSION}";
+        CD_VERSION=$(cat "/tmp/LATEST_RELEASE");
+        rm /tmp/LATEST_RELEASE;
+        if [ -z "$CHROME_DRIVER_VERSION" ]; \
+        then
+          CHROME_DRIVER_VERSION="${CD_VERSION}";
+        fi;
+        CD_VERSION=$(echo $CHROME_DRIVER_VERSION);
+        echo "Using chromedriver version: "$CD_VERSION;
+        wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CD_VERSION/chromedriver_linux64.zip;
+        unzip /tmp/chromedriver_linux64.zip -d /tmp;
+        rm -rf chromedriver_linux64.zip;
+        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
+        sudo chmod +x /usr/local/bin/chromedriver;
+      fi
+      if [ "${BROWSER}" == "firefox" ];
+      then
+        curl -o /tmp/firefox-nightly.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_NIGHTLY}/linux-x86_64/en-US/firefox-${FIREFOX_NIGHTLY}.tar.bz2;
+        sudo tar -C /opt -jxf /tmp/firefox-nightly.bz2;
+        sudo rm -f /opt/firefox/firefox;
+        sudo rm -f /usr/local/bin/firefox;
+        sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
+      fi
+      
+  script: &_e2e_tests_script
+    - >
+      set -euo pipefail;
+      echo ${DOCKER_IMAGE};
+      ls -hl build;
+      cp -a artifacts/*crx .;
+      cp -a artifacts/*xpi .;
+      xvfb-run --server-args="-screen 0 ${SCREEN_RESOLUTION}" npm run test-e2e-${BROWSER}
 
-_build_yoroi:
-  script: &_build_yoroi
+_build_yoroi_script:
+  script: &_build_yoroi_script
     - >
+      set -euo pipefail;
       if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
       then
         echo Triggering by ${BROWSER} travisci to create caches;
@@ -73,19 +135,19 @@ matrix:
       env:
         - BROWSER=brave
         - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-      script: *_build_yoroi
+      script: *_build_yoroi_script
     - stage: build-yoroi
       name: "build Yoroi extension (chrome)"
       env:
         - BROWSER=chrome
         - DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-      script: *_build_yoroi
+      script: *_build_yoroi_script
     - stage: build-yoroi
       name: "build Yoroi extension (firefox)"
       env:
         - BROWSER=firefox
         - DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-      script: *_build_yoroi
+      script: *_build_yoroi_script
 
 
     - stage: code-qa
@@ -108,19 +170,22 @@ matrix:
       env: 
         - BROWSER=brave
         - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-      script: *_e2e_tests
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
     - stage: e2e-tests
       name: "Chrome End-to-End tests"
       env:
         - BROWSER=chrome
         - DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-      script: *_e2e_tests
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
       env:
         - BROWSER=firefox
         - DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-      script: *_e2e_tests
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
 
 
   allow_failures:
