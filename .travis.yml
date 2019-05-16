@@ -103,7 +103,7 @@ _e2e_tests:
         sudo rm -f /opt/firefox/firefox;
         sudo rm -f /usr/local/bin/firefox;
         sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
-      fi
+      fi;
       sudo ln -s ${PWD}/node_modules/.bin/* /usr/local/bin
       
   script: &_e2e_tests_script
@@ -136,58 +136,62 @@ matrix:
       #if: branch = master
       name: "build Yoroi extension (brave)"
       env:
-        - BROWSER=brave
-        - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-      script: *_build_yoroi_script
-    - stage: build-yoroi
-      name: "build Yoroi extension (chrome)"
-      env:
         - BROWSER=chrome
-        - DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-      script: *_build_yoroi_script
-    - stage: build-yoroi
-      name: "build Yoroi extension (firefox)"
-      env:
         - BROWSER=firefox
-        - DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
+        - BROWSER=brave
       script: *_build_yoroi_script
+#    - stage: build-yoroi
+#      name: "build Yoroi extension (chrome)"
+#      env:
+#        - BROWSER=firefox
+#        - BROWSER=brave
+#        - BROWSER=chrome
+#      script: *_build_yoroi_script
+#    - stage: build-yoroi
+#      name: "build Yoroi extension (firefox)"
+#      env:
+#        - BROWSER=brave
+#        - BROWSER=chrome
+#        - BROWSER=firefox
+#      script: *_build_yoroi_script
 
 
     # stage: code-qa
     - stage: code-qa
       name: "flow checks"
-      env: BROWSER=none
       script: npm run flow
     - stage: code-qa
       name: "eslint checks"
-      env: BROWSER=none
       script: npm run eslint
     - stage: code-qa
       name: "jest checks"
-      env: BROWSER=none
       script: npm run jest
 
     # stage: e2e-tests
+    # NOTE: 3x env is a hack to share cache from build-yoroi stage. Last envvar prevails.
     - stage: e2e-tests
       name: "Brave End-to-End tests"
       #if: branch = master
       env: 
+        - BROWSER=chrome
+        - BROWSER=firefox
         - BROWSER=brave
-        - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
       install: *_e2e_tests_install
       script: *_e2e_tests_script
     - stage: e2e-tests
       name: "Chrome End-to-End tests"
       env:
+        - BROWSER=firefox
+        - BROWSER=brave
         - BROWSER=chrome
-        - DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
       install: *_e2e_tests_install
       script: *_e2e_tests_script
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
       env:
+        - BROWSER=brave
+        - BROWSER=chrome
         - BROWSER=firefox
-        - DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
       install: *_e2e_tests_install
       script: *_e2e_tests_script
 
