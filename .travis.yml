@@ -10,6 +10,8 @@ cache:
   directories:
     - ~/.npm # cache npm's cache
     - ~/.cargo # cache cargo's cache
+    # cache built artifacts from install phase to speedup e2e
+    - build 
  
 env:
   global:
@@ -31,7 +33,9 @@ before_install:
     fi;
     sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
 
-install: npm ci
+install: 
+  - npm ci
+  - npm run test-prepare
 
 stages:
   - code-qa
@@ -53,9 +57,9 @@ jobs:
 
     - stage: e2e-tests
       name: "End-to-End tests"
-      env: BROWSER=chrome
+      env:
+        - BROWSER=chrome
       script: 
-        - npm run test-prepare
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
         - >
           docker run -it 
@@ -67,9 +71,9 @@ jobs:
 
     - stage: e2e-tests
       name: "End-to-End tests"
-      env: BROWSER=firefox
+      env:
+        - BROWSER=firefox
       script: 
-        - npm run test-prepare
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
         - >
           docker run -it 
@@ -82,9 +86,9 @@ jobs:
     - stage: e2e-tests
       name: "End-to-End tests"
       if: branch = master
-      env: BROWSER=brave
+      env: 
+        - BROWSER=brave
       script: 
-        - npm run test-prepare
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
         - >
           docker run -it 
