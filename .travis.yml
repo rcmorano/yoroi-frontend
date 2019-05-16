@@ -93,7 +93,7 @@ _e2e_tests:
         rm -rf chromedriver_linux64.zip;
         sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
         sudo chmod +x /usr/local/bin/chromedriver;
-      fi
+      fi;
       if [ "${BROWSER}" == "firefox" ];
       then
         curl -o /tmp/firefox-nightly.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_NIGHTLY}/linux-x86_64/en-US/firefox-${FIREFOX_NIGHTLY}.tar.bz2;
