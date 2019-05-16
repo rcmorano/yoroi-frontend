@@ -21,10 +21,6 @@ env:
     - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
     - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
-  matrix:
-    - BROWSER=brave
-    - BROWSER=chrome
-    - BROWSER=firefox
 
 before_install:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
@@ -51,24 +47,40 @@ aliases:
       ls -hl build;
       cp -a build/*crx .;
       docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
+  build_yoroi: &build_yoroi
+    - >
+      if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
+      then
+        echo Triggering by ${BROWSER} travisci to create caches;
+        npm run test-prepare;
+        touch build/${GIT_SHORT_COMMIT}.built;
+      fi 
+
 
 matrix:
   fast_finish: true
   include:
 
-    - stage: test
-      if: branch = DISABLED
-
+    # This is to create cache for 'build' to be used in e2e-tests
     - stage: build-yoroi
-      name: "build Yoroi extenstion"
+      name: "build Yoroi extension"
+      env:
+        - BROWSER=brave
       script:
-        - >
-          if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
-          then
-            echo Triggering by ${BROWSER} travisci to create caches;
-            npm run test-prepare;
-            touch build/${GIT_SHORT_COMMIT}.built;
-          fi 
+        - <: *build_yoroi
+    - stage: build-yoroi
+      name: "build Yoroi extension"
+      env:
+        - BROWSER=chrome
+      script:
+        - <: *build_yoroi
+    - stage: build-yoroi
+      name: "build Yoroi extension"
+      env:
+        - BROWSER=firefox
+      script:
+        - <: *build_yoroi
+
 
     - stage: code-qa
       name: "flow checks"
@@ -90,7 +102,7 @@ matrix:
         - BROWSER=chrome
       script:
         - export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-        - <: *e2e_test
+        - <: *e2e_tests
 
     - stage: e2e-tests
       name: "Firefox End-to-End tests"
@@ -98,7 +110,7 @@ matrix:
         - BROWSER=firefox
       script: 
         - export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-        - <: *e2e_test
+        - <: *e2e_tests
 
     - stage: e2e-tests
       name: "Brave End-to-End tests"
@@ -107,7 +119,7 @@ matrix:
         - BROWSER=brave
       script: 
         - export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
-        - <: *e2e_test
+        - <: *e2e_tests
 
   allow_failures:
     - stage: build-docker
