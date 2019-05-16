@@ -12,6 +12,7 @@ cache:
     - ~/.cargo # cache cargo's cache
     # cache built artifacts from install phase to speedup e2e
     - build 
+    - artifacts
  
 env:
   global:
@@ -46,7 +47,7 @@ _e2e_tests:
     - >
       echo ${DOCKER_IMAGE} &&
       ls -hl build &&
-      mv build/*crx . &&
+      cp -a artifacts/*crx . &&
       docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
 
 _build_yoroi:
@@ -56,7 +57,7 @@ _build_yoroi:
       then
         echo Triggering by ${BROWSER} travisci to create caches;
         npm run test-prepare;
-        mv *crx build/;
+        mv *crx artifacts/;
         touch build/${GIT_SHORT_COMMIT}.built;
       fi 
 
@@ -70,16 +71,19 @@ matrix:
       name: "build Yoroi extension (brave)"
       env:
         - BROWSER=brave
+        - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
       script: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (chrome)"
       env:
         - BROWSER=chrome
+        - DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
       script: *_build_yoroi
     - stage: build-yoroi
       name: "build Yoroi extension (firefox)"
       env:
         - BROWSER=firefox
+        - DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
       script: *_build_yoroi
 
 
@@ -98,29 +102,25 @@ matrix:
 
 
     - stage: e2e-tests
-      name: "Chrome End-to-End tests"
-      env:
-        - BROWSER=chrome
-      # this avoids to create a new matrix (reuses cache)
-      script: export DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
-      script: *_e2e_tests
-
-    - stage: e2e-tests
-      name: "Firefox End-to-End tests"
-      env:
-        - BROWSER=firefox
-      # this avoids to create a new matrix (reuses cache)
-      script: export DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
-      script: *_e2e_tests
-
-    - stage: e2e-tests
       name: "Brave End-to-End tests"
       if: branch = master
       env: 
         - BROWSER=brave
-      # this avoids to create a new matrix (reuses cache)
-      script: export DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
+        - DOCKER_IMAGE=${E2E_BRAVE_DOCKER_IMAGE}
       script: *_e2e_tests
+    - stage: e2e-tests
+      name: "Chrome End-to-End tests"
+      env:
+        - BROWSER=chrome
+        - DOCKER_IMAGE=${E2E_CHROME_DOCKER_IMAGE}
+      script: *_e2e_tests
+    - stage: e2e-tests
+      name: "Firefox End-to-End tests"
+      env:
+        - BROWSER=firefox
+        - DOCKER_IMAGE=${E2E_FIREFOX_DOCKER_IMAGE}
+      script: *_e2e_tests
+
 
   allow_failures:
     - stage: build-docker
