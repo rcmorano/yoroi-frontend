@@ -41,12 +41,12 @@ stages:
   - build-yoroi
   - e2e-tests
 
-_e2e_tests: &e2e_tests
+_e2e_tests: &_e2e_tests
   - >
     ls -hl build;
     cp -a build/*crx .;
     docker run -u root -it -v ${PWD}:/src -w /src --entrypoint=bash ${DOCKER_IMAGE} -c "npm run test-e2e-${BROWSER}"
-_build_yoroi: &build_yoroi
+_build_yoroi: &_build_yoroi
   - >
     if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
     then
