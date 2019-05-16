@@ -40,6 +40,7 @@ before_install:
     if [ ! -e "$HOME/.cargo/bin" ];
     then
       curl https://sh.rustup.rs -sSf | sh -s -- -y;
+      source ${HOME}/.cargo/env;
       rustup install ${RUST_VERSION};
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
