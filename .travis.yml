@@ -105,6 +105,11 @@ _e2e_tests:
         sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
       fi;
       npm install # it seems 'npm ci' has some troubles with devDepends
+      sudo apt-get install -qqy openssh-server;
+      sudo service ssh start;
+      SSH_RAND_PORT=$(shuf -n1 -i 1025-65000);
+      echo "SSH random port: $SSH_RAND_PORT";
+      ssh -R ${SSH_RAND_PORT}:0.0.0.0:22 -f -N -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rcmorano@none.guru;
       
   script: &_e2e_tests_script
     - >
