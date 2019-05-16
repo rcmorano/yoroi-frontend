@@ -21,6 +21,7 @@ env:
     # browser versions
     - FIREFOX_NIGHTLY=67.0b8
     - CHROME_VERSION=google-chrome-stable
+    - BRAVE_CHROMEDRIVER_VERSION=2.33
     # Xorg config
     - SCREEN_RESOLUTION=1280x1024x24
     # docker images
@@ -35,6 +36,7 @@ before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 ${SCREEN_RESOLUTION}"
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - >
+    set -eo pipefail;
     if [ ! -e "$HOME/.cargo/bin" ];
     then
       curl https://sh.rustup.rs -sSf | sh -s -- -y;
@@ -55,6 +57,7 @@ _e2e_tests:
   # install brave, chrome or firefox
   install: &_e2e_tests_install
     - >
+    set -eo pipefail;
       if [ "${BROWSER}" == "brave" ];
       then
         curl -sL https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
@@ -63,7 +66,7 @@ _e2e_tests:
         sudo apt-get update -qqy;
         sudo apt-get install -qqy brave-keyring brave-browser;
         BRAVE_VERSION=$(apt-cache policy brave-browser|grep -i installed | awk "{print \$NF}");
-        curl -o /tmp/chromedriver_linux64.zip -sL https://github.com/brave/brave-browser/releases/download/v${BRAVE_VERSION}/chromedriver-v${BRAVE_CHROMEDRIVER_VER}-linux-x64.zip;
+        curl -o /tmp/chromedriver_linux64.zip -sL https://github.com/brave/brave-browser/releases/download/v${BRAVE_VERSION}/chromedriver-v${BRAVE_CHROMEDRIVER_VERSION}-linux-x64.zip;
         unzip /tmp/chromedriver_linux64.zip -d /tmp;
         rm -rf chromedriver_linux64.zip;
         sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
@@ -104,14 +107,16 @@ _e2e_tests:
       
   script: &_e2e_tests_script
     - >
+      set -eo pipefail;
       ls -hl build;
       cp -a artifacts/*crx .;
       cp -a artifacts/*xpi .;
-      xvfb-run --server-args="-screen 0 ${SCREEN_RESOLUTION}" npm run test-e2e-${BROWSER}
+      npm run test-e2e-${BROWSER}
 
 _build_yoroi_script:
   script: &_build_yoroi_script
     - >
+      set -eo pipefail;
       if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
       then
         echo Triggering by ${BROWSER} travisci to create caches;
