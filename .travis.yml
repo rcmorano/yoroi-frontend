@@ -33,7 +33,7 @@ env:
     - CARDANO_NETWORK=mainnet
 
 before_install:
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 ${SCREEN_RESOLUTION}"
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :0 -ac -screen 0 ${SCREEN_RESOLUTION}"
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - >
     if [ ! -e "$HOME/.cargo/bin" ];
@@ -120,8 +120,8 @@ _e2e_tests:
       ls -hl build;
       cp -a artifacts/*crx .;
       cp -a artifacts/*xpi .;
+      npm run test-e2e-${BROWSER};
       while true; do sleep 30; head -c16 /dev/urandom | md5sum  ; done;
-      #npm run test-e2e-${BROWSER};
 
 _build_yoroi_script:
   script: &_build_yoroi_script
