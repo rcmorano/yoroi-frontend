@@ -120,7 +120,7 @@ _e2e_tests:
       ls -hl build;
       cp -a artifacts/*crx .;
       cp -a artifacts/*xpi .;
-      while true; do sleep 6969; echo "$RANDOM" ; done;
+      while true; do sleep 6969; head -c16 /dev/urandom | md5sum  ; done;
       #npm run test-e2e-${BROWSER};
 
 _build_yoroi_script:
