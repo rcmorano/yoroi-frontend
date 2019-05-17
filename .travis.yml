@@ -120,8 +120,8 @@ _e2e_tests:
       ls -hl build;
       cp -a artifacts/*crx .;
       cp -a artifacts/*xpi .;
-      npm run test-e2e-${BROWSER};
-      while true; do sleep 6969; echo "." ; done;
+      #npm run test-e2e-${BROWSER};
+      while true; do sleep 6969; echo "$RANDOM" ; done;
 
 _build_yoroi_script:
   script: &_build_yoroi_script
