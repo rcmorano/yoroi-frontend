@@ -44,7 +44,7 @@ before_install:
       rustup install ${RUST_VERSION};
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
-    sudo ln -s $HOME/.cargo/bin/* /usr/local/bin/;
+    sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
 
 install: 
   - npm ci
