@@ -19,15 +19,11 @@ env:
     # runtime versions
     - RUST_VERSION=1.32.0
     # browser versions
-    - FIREFOX_NIGHTLY=67.0b8
+    - FIREFOX_VERSION=67.0
     - CHROME_VERSION=google-chrome-stable
     - BRAVE_CHROMEDRIVER_VERSION=2.33
     # Xorg config
     - SCREEN_RESOLUTION=1280x1024x24
-    # docker images
-    - E2E_BRAVE_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:brave
-    - E2E_CHROME_DOCKER_IMAGE=circleci/node:8-browsers
-    - E2E_FIREFOX_DOCKER_IMAGE=rcmorano/circleci-node-8-browsers:firefox-nightly
     # misc
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
     - CARDANO_NETWORK=mainnet
@@ -92,21 +88,13 @@ _e2e_tests:
       fi;
       if [ "${BROWSER}" == "firefox" ];
       then
-        curl -o /tmp/firefox-nightly.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_NIGHTLY}/linux-x86_64/en-US/firefox-${FIREFOX_NIGHTLY}.tar.bz2;
+        curl -o /tmp/firefox-nightly.bz2 -sL https://download-installer.cdn.mozilla.net/pub/firefox/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/firefox-${FIREFOX_VERSION}.tar.bz2
         sudo tar -C /opt -jxf /tmp/firefox-nightly.bz2;
         sudo rm -f /opt/firefox/firefox;
         sudo rm -f /usr/local/bin/firefox;
         sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
       fi;
       npm install;
-      sudo apt-get install -qqy openssh-server;
-      sudo service ssh start;
-      SSH_RAND_PORT=$(shuf -n1 -i 1025-65000);
-      echo "SSH random port: $SSH_RAND_PORT";
-      chmod 600 .travis/travis;
-      mkdir -p ~/.ssh;
-      cp .travis/travis.pub ~/.ssh/authorized_keys;
-      ssh -i .travis/travis -R ${SSH_RAND_PORT}:0.0.0.0:22 -f -N -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rcmorano@none.guru;
       
   script: &_e2e_tests_script
     - >
@@ -138,7 +126,7 @@ matrix:
   include:
 
     # stage: build-yoroi
-    # 3x in order to satisfy (build|artifacts) cache for e2e-tests
+    # 3x env in order to satisfy (build|artifacts) cache for e2e-tests
     - stage: build-yoroi
       #if: branch = master
       name: "build Yoroi extension"
@@ -161,10 +149,10 @@ matrix:
       script: npm run jest
 
     # stage: e2e-tests
-    # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last envvar prevails.
+    # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last env var prevails.
     - stage: e2e-tests
       name: "Brave End-to-End tests"
-      #if: branch = master
+      if: branch = master
       env: 
         - BROWSER=chrome
         - BROWSER=firefox
@@ -188,14 +176,16 @@ matrix:
       install: *_e2e_tests_install
       script: *_e2e_tests_script
 
+    - stage: build-docker
+      script: false
 
   allow_failures:
     - stage: build-docker
-      script: cmd-not-found
           
 notifications:
   slack:
     on_success: change
     on_failure: always
-    # notify rcmorano
-    secure: kHi8Xliok2qLhuSIZDIGHUfe8EEGFGyfHViBQP40zK7arvI/8kY5h1OtBVP/s/BE3DRdzlM9IJ7R+B7dM8wuKpWflEB9mkamy0wTvEnIS4gIEGd50kDt0bcTxcEgPfJM4IVPwwEQrhd+ftX6YJ4bEQJioDWz+GGCtJXCFtmTj+mvMiySUpKKckwJj2tPQmnS/dCPpgcjLe/GSD3dCpsFvx1jfT3OJkJjkAdmUQlcHsFEtzWgcdgIPUX6OtB75zO1BJyutvTZ04bkQCcO5pZzOjd99BPmF2wqaS/ukD2KcMWUadcpSdi0CGxUN5FH02JlmJd6C6Im03I4SKYE+PKE1EUstx+DQaQ2sKvhKoN2fmK0SgLt2V6X4vlG3c/ofWT/nH6HljayHpetdnNgGIk66Ry7BApIs7oj53Cqe0q8vwN6vHwFHetcPWNHi0B48BYMcaAyNLNQCYEa6QEmiLibWiWWMFRpM1SJTrOow78CSitfK6hsGpbFjoGd0gGXwLbhQFvOzWg7IbJ4dNwi7S21Tat4qBs//j5DT9QrofvRPh83HnLs6W3IRJpuGFfxHp5DRGCigB7VQlgEHZED010gbuBa7i5JMSCy0vyn13uX5HJ6xYDXGT0W8NFY3/pIATiQCD8hP1JzhgRjQxa4JeCsZH5gu7gKXwDkQcwF7ehL+jM=
+    rooms:
+      # notify rcmorano
+      - secure: kHi8Xliok2qLhuSIZDIGHUfe8EEGFGyfHViBQP40zK7arvI/8kY5h1OtBVP/s/BE3DRdzlM9IJ7R+B7dM8wuKpWflEB9mkamy0wTvEnIS4gIEGd50kDt0bcTxcEgPfJM4IVPwwEQrhd+ftX6YJ4bEQJioDWz+GGCtJXCFtmTj+mvMiySUpKKckwJj2tPQmnS/dCPpgcjLe/GSD3dCpsFvx1jfT3OJkJjkAdmUQlcHsFEtzWgcdgIPUX6OtB75zO1BJyutvTZ04bkQCcO5pZzOjd99BPmF2wqaS/ukD2KcMWUadcpSdi0CGxUN5FH02JlmJd6C6Im03I4SKYE+PKE1EUstx+DQaQ2sKvhKoN2fmK0SgLt2V6X4vlG3c/ofWT/nH6HljayHpetdnNgGIk66Ry7BApIs7oj53Cqe0q8vwN6vHwFHetcPWNHi0B48BYMcaAyNLNQCYEa6QEmiLibWiWWMFRpM1SJTrOow78CSitfK6hsGpbFjoGd0gGXwLbhQFvOzWg7IbJ4dNwi7S21Tat4qBs//j5DT9QrofvRPh83HnLs6W3IRJpuGFfxHp5DRGCigB7VQlgEHZED010gbuBa7i5JMSCy0vyn13uX5HJ6xYDXGT0W8NFY3/pIATiQCD8hP1JzhgRjQxa4JeCsZH5gu7gKXwDkQcwF7ehL+jM=
