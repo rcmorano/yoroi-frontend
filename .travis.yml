@@ -211,7 +211,9 @@ deploy:
   overwrite: true
   skip_cleanup: true
   draft: true
-  all_branches: true
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^feature|^fix|staging|production
 
 notifications:
   slack:
