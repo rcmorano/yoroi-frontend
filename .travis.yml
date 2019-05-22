@@ -127,8 +127,8 @@ _build_yoroi_script:
 
 stages:
   - code-qa
-  - build-yoroi
-  - e2e-tests
+#  - build-yoroi
+#  - e2e-tests
 #  - build-docker
 
 matrix:
