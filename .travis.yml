@@ -215,12 +215,12 @@ deploy:
   on:
     all_branches: true
     condition: $TRAVIS_BRANCH =~ ^feature|^fix|staging|production
-    #condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
+    ondition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
 notifications:
   slack:
-    on_success: change
+    on_success: always
     on_failure: always
     rooms:
       # notify rcmorano
-      - secure: kHi8Xliok2qLhuSIZDIGHUfe8EEGFGyfHViBQP40zK7arvI/8kY5h1OtBVP/s/BE3DRdzlM9IJ7R+B7dM8wuKpWflEB9mkamy0wTvEnIS4gIEGd50kDt0bcTxcEgPfJM4IVPwwEQrhd+ftX6YJ4bEQJioDWz+GGCtJXCFtmTj+mvMiySUpKKckwJj2tPQmnS/dCPpgcjLe/GSD3dCpsFvx1jfT3OJkJjkAdmUQlcHsFEtzWgcdgIPUX6OtB75zO1BJyutvTZ04bkQCcO5pZzOjd99BPmF2wqaS/ukD2KcMWUadcpSdi0CGxUN5FH02JlmJd6C6Im03I4SKYE+PKE1EUstx+DQaQ2sKvhKoN2fmK0SgLt2V6X4vlG3c/ofWT/nH6HljayHpetdnNgGIk66Ry7BApIs7oj53Cqe0q8vwN6vHwFHetcPWNHi0B48BYMcaAyNLNQCYEa6QEmiLibWiWWMFRpM1SJTrOow78CSitfK6hsGpbFjoGd0gGXwLbhQFvOzWg7IbJ4dNwi7S21Tat4qBs//j5DT9QrofvRPh83HnLs6W3IRJpuGFfxHp5DRGCigB7VQlgEHZED010gbuBa7i5JMSCy0vyn13uX5HJ6xYDXGT0W8NFY3/pIATiQCD8hP1JzhgRjQxa4JeCsZH5gu7gKXwDkQcwF7ehL+jM=
+      - secure: uLazaQzraN0KlITJo3LiZ+eNP8UPuoLrtk2m7KWQPaqx2pUlBwAQKh7aSVj+QfnXUa4nQ6Q4HPq2P6j08GhD4b5vGjs7bmPk8ro2mnX/ECfgqfuon1CpvvD856DRJB1NlzI0BTlZlTLZ24TfvYFBB4CF5rh+Fe0DESNqqpwbLwOzQMms21I8VM/oFxOx+d4Uu7/rthIk0juxjS1DPLm+Owk761+MzQRq0XQYpsZpvE2w7ESJzpMjp8qTFKbNwJXbiel0ITNRzhzGVVKTNCNPnnbFSy2Ol6/6aLetLOnMQI1S+VZhUifigvcA9Pov9V6BHYk9+mCrsK93XavTwxSYUNenIf2zmIxkHzz0+EV9DXCysFNyxNq8QqOfwfDLHsfnKd2OsbJ/T5XuciHdizK04Fbp4hUl7HewUn7ywm0p8d+27Ddlrbxy5fdTOu+2YvivOpN5le200Xyhoa8u7fP9AhiRDdPCfor8KCbDRDjmZXTPlJFB8FoSs7bAOUQRuTvZqkI7E0BYrXEbGBwL3WANEb0HFECxg22Nxgx5wV4/owyX+iKN2MXLjKQnSUYCUhbu1xPhztd6jScMoNY0yirKVVbn3z6uuOJs3sk+MM5BrPY1PLtDj8cMqYHAGjsgvSRLFsKkwRQsmulrSyJAVY9z8AVmv3CSf6X9LQVCJKjY8SY=
