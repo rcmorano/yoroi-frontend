@@ -203,7 +203,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: "lvTSMDNp+l5Df1LKN6lqtlHMwvKJIEQWOLtFNYDsCw4bHiKRJVu2zDay/xCtzUxXk+folVG1eDmqPK4VdS4TRTVhkLsw2EWoTqGlGPTMU2XyktN8O179yY4l/hUt11vYMJDYZauquecsVKFzP0DS5L1Wp9qFYNF+jN0eFsD1QY9CGGRloklYK3ERBCXDZdYhZR1vjeTXeNOuS+63sowCoc74dG87GjfeIO/0eC3oGEC9JLXwwoWDbtt46CxtkxjXA/H9KcbCXeeC0W9aW+g5FMYPnMugJngHmpzvGz4k5netfcwvIq+odCI83mUn2VhY+w8bKy+osCsW2vdNMhhXiVNpXuRoqLfguso1fVXJ0n5sDDFPHBV24XCxiIOS9p7k/gznWtBDYJjuEmkfeDDLUNHbJv9M0kfNAVfcpi4tHls8Urf1ALQfAxtWbIdfdpyjKBLhp3xp3bd0SBhZvDnvXfpaw649Dr6R8pdU4zW04UlhYEuiGxHrjom5zGMbiHS6/Oo1xMzQDS0o0+2WxcM7UMHxEz6DVIgHxlMxUC+3IIUDnTHKf0figlZhzrf+tOf5rk+rGzwCcE0LqfuxRSd3CA93+wbPqPLEv35qZAIvNLvhx0BiIgZjNlf+cbIm53oC/HdIu/wypGli0gnFCKkyYi0kUxbZ8aX4SRcQlCYtFus="
+    secure: lvTSMDNp+l5Df1LKN6lqtlHMwvKJIEQWOLtFNYDsCw4bHiKRJVu2zDay/xCtzUxXk+folVG1eDmqPK4VdS4TRTVhkLsw2EWoTqGlGPTMU2XyktN8O179yY4l/hUt11vYMJDYZauquecsVKFzP0DS5L1Wp9qFYNF+jN0eFsD1QY9CGGRloklYK3ERBCXDZdYhZR1vjeTXeNOuS+63sowCoc74dG87GjfeIO/0eC3oGEC9JLXwwoWDbtt46CxtkxjXA/H9KcbCXeeC0W9aW+g5FMYPnMugJngHmpzvGz4k5netfcwvIq+odCI83mUn2VhY+w8bKy+osCsW2vdNMhhXiVNpXuRoqLfguso1fVXJ0n5sDDFPHBV24XCxiIOS9p7k/gznWtBDYJjuEmkfeDDLUNHbJv9M0kfNAVfcpi4tHls8Urf1ALQfAxtWbIdfdpyjKBLhp3xp3bd0SBhZvDnvXfpaw649Dr6R8pdU4zW04UlhYEuiGxHrjom5zGMbiHS6/Oo1xMzQDS0o0+2WxcM7UMHxEz6DVIgHxlMxUC+3IIUDnTHKf0figlZhzrf+tOf5rk+rGzwCcE0LqfuxRSd3CA93+wbPqPLEv35qZAIvNLvhx0BiIgZjNlf+cbIm53oC/HdIu/wypGli0gnFCKkyYi0kUxbZ8aX4SRcQlCYtFus=
   file_glob: true
   file:
     - artifacts/*
@@ -214,6 +214,7 @@ deploy:
   on:
     all_branches: true
     condition: $TRAVIS_BRANCH =~ ^feature|^fix|staging|production
+    condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
 notifications:
   slack:
