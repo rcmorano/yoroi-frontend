@@ -46,7 +46,6 @@ before_install:
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
     sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
-    sudo npm install -g chrome-webstore-upload-cli;
 
 install: 
   - npm ci
@@ -230,6 +229,7 @@ deploy:
           npm run compress -- --env "mainnet" --zip-only --app-id ${CHROME_APP_ID} --codebase "${CHROME_CODEBASE}";
           ls -hl;
         fi;
+        sudo npm install -g chrome-webstore-upload-cli;
         #webstore upload --source yoroi.zip --extension-id="${APP_ID}" --client-id="${CHROME_CLIENT_ID}" --client-secret="${CHROME_CLIENT_SECRET}" --refresh-token="${CHROME_REFRESH_TOKEN}" --auto-publish --trusted-testers;
     on:
       all_branches: true
