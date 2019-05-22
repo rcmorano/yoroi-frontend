@@ -19,7 +19,7 @@ env:
     # runtime versions
     - RUST_VERSION=1.32.0
     # browser versions
-    - FIREFOX_VERSION=67.0
+    - FIREFOX_VERSION=67.0b9
     - CHROME_VERSION=google-chrome-stable
     - BRAVE_CHROMEDRIVER_VERSION=2.33
     # Xorg config
@@ -88,7 +88,7 @@ _e2e_tests:
       fi;
       if [ "${BROWSER}" == "firefox" ];
       then
-        curl -o /tmp/firefox.bz2 -sL https://download-installer.cdn.mozilla.net/pub/firefox/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/firefox-${FIREFOX_VERSION}.tar.bz2
+        curl -o /tmp/firefox.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/firefox-${FIREFOX_VERSION}.tar.bz2;
         sudo rm -f /opt/firefox/firefox;
         sudo tar -C /opt -jxf /tmp/firefox.bz2;
         sudo rm -f /usr/local/bin/firefox;
