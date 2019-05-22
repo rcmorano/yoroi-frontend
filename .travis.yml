@@ -129,7 +129,7 @@ stages:
   - code-qa
   - build-yoroi
   - e2e-tests
-  - build-docker
+#  - build-docker
 
 matrix:
   fast_finish: true
@@ -186,8 +186,8 @@ matrix:
       install: *_e2e_tests_install
       script: *_e2e_tests_script
 
-    - stage: build-docker
-      script: false
+    #- stage: build-docker
+    #  script: false
 
   allow_failures:
     - stage: build-docker
@@ -210,6 +210,7 @@ deploy:
     - build*.tar.gz
   overwrite: true
   skip_cleanup: true
+  draft: true
 
 notifications:
   slack:
