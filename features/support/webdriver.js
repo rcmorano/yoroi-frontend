@@ -78,7 +78,7 @@ function getFirefoxBuilder() {
       }
     })
     .forBrowser('firefox')
-    .withCapabilities({"moz:firefoxOptions": {"log": {"level": "trace"}}})
+    .withCapabilities({ 'moz:firefoxOptions': { 'log': { 'level': 'trace' } } })
     .setFirefoxOptions(options);
 }
 
