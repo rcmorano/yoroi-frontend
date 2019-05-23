@@ -209,7 +209,7 @@ deploy:
   - provider: script
     script:
       - >
-        if [[ ! -z "${TRAVIS_PULL_REQUEST}" ]] || [[ "${TRAVIS_BRANCH}" == "staging" ]];
+        if [ ! -z "${TRAVIS_PULL_REQUEST}" -o "${TRAVIS_BRANCH}" == "staging" ];
         then
           npm run build -- --env "staging";
           npm run compress -- --env "staging" --zip-only --app-id ${CHROME_APP_ID} --codebase "${CHROME_CODEBASE}";
