@@ -209,15 +209,7 @@ deploy:
   - provider: script
     script:
       - >
-        if [ ! -z "${TRAVIS_PULL_REQUEST}" ];
-        then
-          ls -hl;
-        fi;
-        if [ ! -z $(echo ${TRAVIS_BRANCH} | grep "^fix\|^feature") ];
-        then
-          ls -hl;
-        fi;
-        if [ "${TRAVIS_BRANCH}" == "staging" ];
+        if [[ ! -z "${TRAVIS_PULL_REQUEST}" ]] || [[ "${TRAVIS_BRANCH}" == "staging" ]];
         then
           npm run build -- --env "staging";
           npm run compress -- --env "staging" --zip-only --app-id ${CHROME_APP_ID} --codebase "${CHROME_CODEBASE}";
@@ -233,7 +225,7 @@ deploy:
         #webstore upload --source yoroi.zip --extension-id="${APP_ID}" --client-id="${CHROME_CLIENT_ID}" --client-secret="${CHROME_CLIENT_SECRET}" --refresh-token="${CHROME_REFRESH_TOKEN}" --auto-publish --trusted-testers;
     on:
       all_branches: true
-      condition: $TRAVIS_BRANCH = ^fix|^feature|staging|production
+      condition: $TRAVIS_BRANCH =~ ^fix|feature|staging|production
       condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
   - provider: releases
