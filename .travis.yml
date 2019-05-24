@@ -12,7 +12,7 @@ cache:
     - ~/.cargo # cache cargo's cache
     # cache built artifacts from install phase to speedup e2e
     - build 
-    - artifacts
+    - test-artifacts
  
 env:
   global:
@@ -115,8 +115,8 @@ _e2e_tests:
     - >
       set -eo pipefail;
       ls -hl build;
-      cp -a artifacts/*crx .;
-      cp -a artifacts/*xpi .;
+      cp -a test-artifacts/*crx .;
+      cp -a test-artifacts/*xpi .;
       npm run test-e2e-${BROWSER};
 
 _build_yoroi_script:
@@ -126,7 +126,7 @@ _build_yoroi_script:
       if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
       then
         npm run test-prepare;
-        mv *crx *xpi artifacts/;
+        mv *crx *xpi test-artifacts/;
         touch build/${GIT_SHORT_COMMIT}.built;
       fi;
 
@@ -201,7 +201,7 @@ before_deploy:
   - >
     git config --local user.name "${GITHUB_USERNAME}";
     git config --local user.email "${GITHUB_EMAIL}";
-    export RELEASE_TAG="${TRAVIS_BRANCH}-$(git log --format=%h -1)"
+    export RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-$(git log --format=%h -1)"
     git tag $RELEASE_TAG;
     tar -zcf build-${RELEASE_TAG}.tar.gz build;
 
@@ -210,29 +210,44 @@ deploy:
     script:
       - >
         sudo npm install -g chrome-webstore-upload-cli;
-        if `echo "$TRAVIS_BRANCH" | grep -q "^fix\|feature"` || test "${TRAVIS_BRANCH}" == "staging";
+        ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
+        XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
+        if `echo "$TRAVIS_BRANCH" | grep -q "^fix\|feature\|develop\|staging"`;
         then
           npm run build -- --env "staging";
-          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE}";
           ls -hl . build;
+          if [ "${TRAVIS_BRANCH}" == "develop" ];
+          then
+            npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE}";
+            mv Yoroi*zip ${ZIP_NAME};
+            mv Yoroi*xpi ${XPI_NAME};
+            webstore upload --source "${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          fi;
           if [ "${TRAVIS_BRANCH}" == "staging" ];
           then
-            echo "Extension md5: $(md5sum yoroi.zip)";
-            webstore upload --source yoroi.zip --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+            npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE}";
+            mv Yoroi*zip ${ZIP_NAME};
+            mv Yoroi*xpi ${XPI_NAME};
+            webstore upload --source "${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
           else
-            echo "just rename artifact to be uploaded to github";
+            mv Yoroi*zip ${ZIP_NAME};
+            mv Yoroi*xpi ${XPI_NAME};
           fi;
         fi;
-        if [ "${TRAVIS_BRANCH}" == "production" ];
+        if [ "${TRAVIS_BRANCH}" == "master" ];
         then
           npm run build -- --env "mainnet";
-          npm run compress -- --env "mainnet" --zip-only --app-id ${CHROME_APP_ID} --codebase "${CHROME_CODEBASE}";
-          #webstore upload --source yoroi.zip --extension-id="${APP_ID}" --client-id="${CHROME_CLIENT_ID}" --client-secret="${CHROME_CLIENT_SECRET}" --refresh-token="${CHROME_REFRESH_TOKEN}" --auto-publish --trusted-testers;
           ls -hl . build;
+          npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE}";
+          mv Yoroi*zip ${ZIP_NAME};
+          mv Yoroi*xpi ${XPI_NAME};
+          webstore upload --source "${ZIP_NAME}" --extension-id="${GOOGLE_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
+        echo "Chrome ZIP md5: $(md5sum ${ZIP_NAME})";
+        echo "Firefox XPI md5: $(md5sum ${XPI_NAME})";
     on:
       all_branches: true
-      condition: $TRAVIS_BRANCH =~ ^fix|feature|staging|production
+      condition: $TRAVIS_BRANCH =~ ^fix|feature|develop|staging|master
       condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
   - provider: releases
@@ -240,15 +255,16 @@ deploy:
       secure: j8A5oEK6c/jiD/AcwNbFaRJ6vXiNOGrqGDPfgQ2g5RDcTmSu5PA4SgHN2hTYjqSYt78zdBmOtfNY77rN9jy5R2iqGbqByT5Dd1fjO9CS9tIcKj/8+J8vMOK/scCimp2mVYxg84VXanPYctvMB/3AFi2bZNyNP85uXOAuxTFQ7h8KdCiJJC9JQkusSqTq82CmIqrzOZZ2TmqUhMS2skS9ZaRhUPW5jgutVFp38PQnqTeF40+jsKYhMgviuS/aBQF51TZbmNuLfUad0nNnKuWUiZDAvShdSgHZE8SAXaKvME5MR/BpeOQMHnE5ZCOxbiwjIi/QHgU0w+DSamNpEL1o3pm+sf7cexMIk0b18o1pBT8xCgFvVMRuIeN1Jy5JvXACP87k32P+J9HP9165cpdXORynqvwwpiuOPCXyxktGuZObR31Awq+MxNYrz5boTFcbA/eRxQKCEt4s2odzVmd/iRxaTJdO+Zs+DI2kw4TiFPZtYH66v6xitrTSHWBWsd2fEGlYXfGVDl2nhi6y+T09dJ0UEd/nS4UJvdfa8c7AeYUzw4EDOyawArTEIZsRrmq4Bspl61LcUZK/VJdxO3ZX0PyxbiZDXuH1ivmfB7jT2Ibl74Ui+LEk4yoBdVGliulwMMwDlYXxgCO/tqeIF/Q1r4oY9aT3tuoV+j9WwQ4brZ8=
     file_glob: true
     file:
-      - artifacts/*
+      - yoroi*zip
+      - yoroi*xpi
       - build*.tar.gz
     overwrite: true
     skip_cleanup: true
     draft: true
     on:
-    all_branches: true
-    condition: $TRAVIS_BRANCH =~ ^fix|feature|staging|production
-    condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ ^fix|feature|develop|staging|master
+      condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
 notifications:
   slack:
