@@ -140,7 +140,7 @@ _chrome_webstore_deploy:
         RELEASE_TAG="${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
-      fi
+      fi;
       ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
       XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
       if `echo "$TRAVIS_BRANCH" | grep -q "^fix\|feature\|develop\|staging"`;
