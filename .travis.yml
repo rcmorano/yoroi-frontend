@@ -198,12 +198,11 @@ matrix:
     - stage: build-docker
 
 before_deploy:
-  - >
-    git config --local user.name "${GITHUB_USERNAME}";
-    git config --local user.email "${GITHUB_EMAIL}";
-    export RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-$(git log --format=%h -1)"
-    git tag $RELEASE_TAG;
-    tar -zcf build-${RELEASE_TAG}.tar.gz build;
+  - git config --local user.name "${GITHUB_USERNAME}";
+  - git config --local user.email "${GITHUB_EMAIL}";
+  - export RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-$(git log --format=%h -1)"
+  - git tag $RELEASE_TAG;
+  - tar -zcf build-${RELEASE_TAG}.tar.gz build;
 
 deploy:
   - provider: script
