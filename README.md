@@ -1,5 +1,8 @@
 # Yoroi - Cardano ADA wallet
 
+Build status for mainnet:[![Build Status](https://travis-ci.com/rcmorano/yoroi-frontend.svg?branch=master)
+Build status for testnet:[![Build Status](https://travis-ci.com/rcmorano/yoroi-frontend.svg?branch=staging)
+
 ## Contributing
 
 Check out our [documents](docs/specs/meta) on the governance of this project.
