@@ -198,31 +198,38 @@ matrix:
     - stage: build-docker
 
 before_deploy:
-  # Set up git user name and tag this commit
-  - git config --local user.name "${GITHUB_USERNAME}"
-  - git config --local user.email "${GITHUB_EMAIL}"
-  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
-  - git tag $TRAVIS_TAG
-  - tar -zcf build-${TRAVIS_TAG}.tar.gz build
+  - >
+    git config --local user.name "${GITHUB_USERNAME}";
+    git config --local user.email "${GITHUB_EMAIL}";
+    export RELEASE_TAG="${TRAVIS_BRANCH}-$(git log --format=%h -1)"
+    git tag $RELEASE_TAG;
+    tar -zcf build-${RELEASE_TAG}.tar.gz build;
 
 deploy:
   - provider: script
     script:
       - >
-        if test ! -z "${TRAVIS_PULL_REQUEST}" || test "${TRAVIS_BRANCH}" == "staging";
+        sudo npm install -g chrome-webstore-upload-cli;
+        if `echo "$TRAVIS_BRANCH" | grep -q "^fix\|feature"` || test "${TRAVIS_BRANCH}" == "staging";
         then
           npm run build -- --env "staging";
-          npm run compress -- --env "staging" --zip-only --app-id ${CHROME_APP_ID} --codebase "${CHROME_CODEBASE}";
-          ls -hl;
+          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE}";
+          ls -hl . build;
+          if [ "${TRAVIS_BRANCH}" == "staging" ];
+          then
+            echo "Extension md5: $(md5sum yoroi.zip)";
+            webstore upload --source yoroi.zip --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          else
+            echo "just rename artifact to be uploaded to github";
+          fi;
         fi;
         if [ "${TRAVIS_BRANCH}" == "production" ];
         then
           npm run build -- --env "mainnet";
           npm run compress -- --env "mainnet" --zip-only --app-id ${CHROME_APP_ID} --codebase "${CHROME_CODEBASE}";
-          ls -hl;
+          #webstore upload --source yoroi.zip --extension-id="${APP_ID}" --client-id="${CHROME_CLIENT_ID}" --client-secret="${CHROME_CLIENT_SECRET}" --refresh-token="${CHROME_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          ls -hl . build;
         fi;
-        sudo npm install -g chrome-webstore-upload-cli;
-        #webstore upload --source yoroi.zip --extension-id="${APP_ID}" --client-id="${CHROME_CLIENT_ID}" --client-secret="${CHROME_CLIENT_SECRET}" --refresh-token="${CHROME_REFRESH_TOKEN}" --auto-publish --trusted-testers;
     on:
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^fix|feature|staging|production
@@ -240,7 +247,7 @@ deploy:
     draft: true
     on:
     all_branches: true
-    condition: $TRAVIS_BRANCH =~ staging|production
+    condition: $TRAVIS_BRANCH =~ ^fix|feature|staging|production
     condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
 notifications:
