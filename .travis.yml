@@ -137,16 +137,16 @@ _chrome_webstore_deploy:
       sudo npm install -g chrome-webstore-upload-cli;
       if [ ! -z "${TRAVIS_PULL_REQUEST}" ];
       then
-        RELEASE_TAG="${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}"
+        RELEASE_TAG="${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
       fi
-      ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
-      XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
+      ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
+      XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
       if `echo "$TRAVIS_BRANCH" | grep -q "^fix\|feature\|develop\|staging"`;
       then
         npm run build -- --env "staging";
-        sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json
+        sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
         ls -hl . build;
         if [ "${TRAVIS_BRANCH}" == "develop" ];
         then
@@ -178,7 +178,7 @@ _chrome_webstore_deploy:
       if [ "${TRAVIS_BRANCH}" == "master" ];
       then
         npm run build -- --env "mainnet";
-        sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json
+        sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
         ls -hl . build;
         npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE}";
         mv Yoroi*zip artifacts/${ZIP_NAME};
@@ -189,17 +189,16 @@ _chrome_webstore_deploy:
       echo "Chrome ZIP md5: $(md5sum artifacts/${ZIP_NAME})";
       echo "Firefox XPI md5: $(md5sum artifacts/${XPI_NAME})";
 
-_github_releases_deploy:
-  script: &_github_releases_deploy
-    ->
-     dpl
+#_github_releases_deploy:
+#  script: &_github_releases_deploy
+#    ->
+#     dpl
 
 stages:
   - code-qa
   - build-yoroi
   - e2e-tests
-  - chrome-webstore-deploy
-  - github-releases-deploy
+  - deploy-artifacts
 #  - build-docker
 
 matrix:
@@ -257,7 +256,7 @@ matrix:
       install: *_e2e_tests_install
       script: *_e2e_tests_script
 
-    - stage: chrome-webstore-deploy
+    - stage: artifacts-deploy
       script: *_chrome_webstore_deploy
       if: $TRAVIS_BRANCH =~ ^fix|feature|develop|staging|master
       if: type = pull_request
@@ -266,17 +265,6 @@ matrix:
         - BROWSER=brave
         - BROWSER=chrome
         - BROWSER=firefox
-
-    # custom deploy for PRs
-    - stage: github-releases-deploy
-      script: *_github_releases_deploy
-      if: type = pull_request
-      # env provides cache
-      env:
-        - BROWSER=brave
-        - BROWSER=chrome
-        - BROWSER=firefox
-
 
     #- stage: build-docker
     #  script: false
@@ -304,7 +292,7 @@ deploy:
     draft: true
     on:
       all_branches: true
-      condition: $TRAVIS_BRANCH = master
+      condition: $TRAVIS_BRANCH =~ staging|staging
       condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
 
 notifications:
