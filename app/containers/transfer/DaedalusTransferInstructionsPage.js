@@ -2,27 +2,48 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { defineMessages, intlShape } from 'react-intl';
-import globalMessages from '../../i18n/global-messages';
 import TransferInstructionsPage from '../../components/transfer/TransferInstructionsPage';
 
 const messages = defineMessages({
   attentionText: {
     id: 'daedalusTransfer.instructions.attention.text',
-    defaultMessage: '!!!Icarus and Daedalus wallets use different key derivation scheme and they each have a separate format for addresses. For this reason, Daedalus wallets cannot be restored and continued to be used in Icarus and vice versa. This will change in the future. For now, to use funds from your Daedalus wallet, you need to transfer them to your Icarus wallet. Daedalus and Icarus wallets are fully compatible for transferring of funds. If you don’t have a working copy of Daedalus, you can use your 12-word recovery phrase used to restore and transfer the balance from Daedalus into Icarus.',
-    description: 'Attention text on the Daedalus transfer instructions page.'
+    defaultMessage: '!!!Yoroi and Daedalus wallets use different key derivation scheme and they each have a separate format for addresses. For this reason, Daedalus wallets cannot be restored and continued to be used in Yoroi and vice versa. This will change in the future. For now, to use funds from your Daedalus wallet, you need to transfer them to your Yoroi wallet. Daedalus and Yoroi wallets are fully compatible for transferring of funds. If you don’t have a working copy of Daedalus, you can use your 12-word recovery phrase (or 27-words for a paper wallet) used to restore and transfer the balance from Daedalus into Yoroi.',
   },
   confirmationText: {
     id: 'daedalusTransfer.instructions.attention.confirmation',
     defaultMessage: '!!!Transfer all funds from Daedalus wallet',
-    description: 'Label "Transfer all funds from Daedalus wallet" on the Daedalus transfer instructions page.'
-  }
+  },
+  confirmationPaperText: {
+    id: 'daedalusTransfer.instructions.attention.confirmationPaper',
+    defaultMessage: '!!!Transfer all funds from Daedalus paper wallet',
+  },
+  confirmationMasterKeyText: {
+    id: 'daedalusTransfer.instructions.attention.confirmationMasterKey',
+    defaultMessage: '!!!Transfer all funds from Daedalus master key',
+  },
+  transferTitleText: {
+    id: 'daedalusTransfer.instructions.attention.title',
+    defaultMessage: '!!!Transfer all funds from:'
+  },
+  transferText: {
+    id: 'daedalusTransfer.instructions.attention.button.label',
+    defaultMessage: '!!!Daedalus Wallet',
+  },
+  transferPaperText: {
+    id: 'daedalusTransfer.instructions.attention.paper.button.label',
+    defaultMessage: '!!!Daedalus Paper Wallet',
+  },
+  transferMasterKeyText: {
+    id: 'daedalusTransfer.instructions.attention.masterKey.button.label',
+    defaultMessage: '!!!Daedalus Master Key',
+  },
 });
-
-messages.fieldIsRequired = globalMessages.fieldIsRequired;
 
 type Props = {
   onFollowInstructionsPrerequisites: Function,
   onConfirm: Function,
+  onPaperConfirm: Function,
+  onMasterKeyConfirm: Function,
   disableTransferFunds: boolean,
 };
 
@@ -38,6 +59,8 @@ export default class DaedalusTransferInstructionsPage extends Component<Props> {
     const {
       onFollowInstructionsPrerequisites,
       onConfirm,
+      onPaperConfirm,
+      onMasterKeyConfirm,
       disableTransferFunds,
     } = this.props;
 
@@ -45,9 +68,14 @@ export default class DaedalusTransferInstructionsPage extends Component<Props> {
       <TransferInstructionsPage
         onFollowInstructionsPrerequisites={onFollowInstructionsPrerequisites}
         onConfirm={onConfirm}
+        onPaperConfirm={onPaperConfirm}
+        onMasterKeyConfirm={onMasterKeyConfirm}
         disableTransferFunds={disableTransferFunds}
         attentionText={intl.formatMessage(messages.attentionText)}
-        confirmationText={intl.formatMessage(messages.confirmationText)}
+        confirmationTitleText={intl.formatMessage(messages.transferTitleText)}
+        confirmationText={intl.formatMessage(messages.transferText)}
+        confirmationPaperText={intl.formatMessage(messages.transferPaperText)}
+        confirmationMasterKeyText={intl.formatMessage(messages.transferMasterKeyText)}
       />
     );
   }

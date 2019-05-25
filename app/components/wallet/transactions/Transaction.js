@@ -12,87 +12,72 @@ import { environmentSpecificMessages } from '../../../i18n/global-messages';
 import type { TransactionState } from '../../../domain/WalletTransaction';
 import environment from '../../../environment';
 import { Logger } from '../../../utils/logging';
+import expandArrow from '../../../assets/images/expand-arrow.inline.svg';
 
 const messages = defineMessages({
   type: {
     id: 'wallet.transaction.type',
     defaultMessage: '!!!{currency} transaction',
-    description: 'Transaction type shown for {currency} transactions.',
   },
   exchange: {
     id: 'wallet.transaction.type.exchange',
     defaultMessage: '!!!Exchange',
-    description: 'Transaction type shown for money exchanges between currencies.',
   },
   assuranceLevel: {
     id: 'wallet.transaction.assuranceLevel',
     defaultMessage: '!!!Transaction assurance level',
-    description: 'Transaction assurance level.',
   },
   confirmations: {
     id: 'wallet.transaction.confirmations',
     defaultMessage: '!!!confirmations',
-    description: 'Transaction confirmations.',
   },
   transactionId: {
     id: 'wallet.transaction.transactionId',
     defaultMessage: '!!!Transaction ID',
-    description: 'Transaction ID.',
   },
   conversionRate: {
     id: 'wallet.transaction.conversion.rate',
     defaultMessage: '!!!Conversion rate',
-    description: 'Conversion rate.',
   },
   sent: {
     id: 'wallet.transaction.sent',
     defaultMessage: '!!!{currency} sent',
-    description: 'Label "{currency} sent" for the transaction.',
   },
   received: {
     id: 'wallet.transaction.received',
     defaultMessage: '!!!{currency} received',
-    description: 'Label "{currency} received" for the transaction.',
   },
   intrawallet: {
     id: 'wallet.transaction.type.intrawallet',
     defaultMessage: '!!!{currency} intrawallet transaction',
-    description: 'both sender & receiver are yourself',
   },
   multiparty: {
     id: 'wallet.transaction.type.multiparty',
     defaultMessage: '!!!{currency} multiparty transaction',
-    description: 'only some inputs of tx belong to you',
   },
   fromAddress: {
     id: 'wallet.transaction.address.from',
     defaultMessage: '!!!From address',
-    description: 'From address',
   },
   fee: {
     id: 'wallet.transaction.fee',
     defaultMessage: '!!!Fee',
-    description: 'label for fee for tx',
   },
   fromAddresses: {
     id: 'wallet.transaction.addresses.from',
     defaultMessage: '!!!From addresses',
-    description: 'From addresses',
   },
   toAddress: {
     id: 'wallet.transaction.address.to',
     defaultMessage: '!!!To address',
-    description: 'To address',
   },
   toAddresses: {
     id: 'wallet.transaction.addresses.to',
     defaultMessage: '!!!To addresses',
-    description: 'To addresses',
   },
   transactionAmount: {
     id: 'wallet.transaction.transactionAmount',
     defaultMessage: '!!!Transaction amount',
-    description: 'Transaction amount.',
   },
 });
 
@@ -100,17 +85,14 @@ const assuranceLevelTranslations = defineMessages({
   [assuranceLevels.LOW]: {
     id: 'wallet.transaction.assuranceLevel.low',
     defaultMessage: '!!!low',
-    description: 'Transaction assurance level "low".',
   },
   [assuranceLevels.MEDIUM]: {
     id: 'wallet.transaction.assuranceLevel.medium',
     defaultMessage: '!!!medium',
-    description: 'Transaction assurance level "medium".',
   },
   [assuranceLevels.HIGH]: {
     id: 'wallet.transaction.assuranceLevel.high',
     defaultMessage: '!!!high',
-    description: 'Transaction assurance level "high".',
   },
 });
 
@@ -118,12 +100,10 @@ const stateTranslations = defineMessages({
   [transactionStates.PENDING]: {
     id: 'wallet.transaction.state.pending',
     defaultMessage: '!!!Transaction pending',
-    description: 'Transaction state "pending"',
   },
   [transactionStates.FAILED]: {
     id: 'wallet.transaction.state.failed',
     defaultMessage: '!!!Transaction failed',
-    description: 'Transaction state "pending"',
   },
 });
 
@@ -133,6 +113,7 @@ type Props = {
   assuranceLevel: string,
   isLastInList: boolean,
   formattedWalletAmount: Function,
+  classicTheme: boolean
 };
 
 type State = {
@@ -174,9 +155,9 @@ export default class Transaction extends Component<Props, State> {
     }
   }
 
-  getAmountStyle(amt: BigNumber) {
+  getAmountStyle(amt: BigNumber, classicTheme: boolean) {
     return classNames([
-      styles.amount,
+      classicTheme ? styles.amountClassic : styles.amount,
       amt.lt(0)
         ? styles.amountSent
         : styles.amountReceived
@@ -185,25 +166,43 @@ export default class Transaction extends Component<Props, State> {
 
   render() {
     const data = this.props.data;
-    const { isLastInList, state, assuranceLevel, formattedWalletAmount } = this.props;
+    const { isLastInList, state, assuranceLevel, formattedWalletAmount, classicTheme } = this.props;
     const { isExpanded } = this.state;
     const { intl } = this.context;
     const isFailedTransaction = state === transactionStates.FAILED;
+    const isPendingTransaction = state === transactionStates.PENDING;
 
     const componentStyles = classNames([
-      styles.component,
-      isFailedTransaction ? styles.failed : null
+      classicTheme ? styles.componentClassic : styles.component,
+      isFailedTransaction ? styles.failed : null,
+      isPendingTransaction ? styles.pending : null,
     ]);
 
     const contentStyles = classNames([
-      styles.content,
+      classicTheme ? styles.contentClassic : styles.content,
       isLastInList ? styles.last : null
     ]);
 
     const detailsStyles = classNames([
-      styles.details,
+      classicTheme ? styles.detailsClassic : styles.details,
       isExpanded ? styles.expanded : styles.closed
     ]);
+
+    const togglerClasses = classicTheme ? styles.togglerClassic : styles.toggler;
+    const titleClasses = classicTheme ? styles.titleClassic : styles.title;
+    const typeClasses = classicTheme ? styles.typeClassic : styles.type;
+    const labelOkClasses = classNames([
+      classicTheme ? styles.labelClassic : styles.label,
+      styles[assuranceLevel]
+    ]);
+    const labelClasses = classNames([
+      classicTheme ? styles.labelClassic : styles.label,
+      classicTheme ? styles[`${state}LabelClassic`] : styles[`${state}Label`]
+    ]);
+    const currencySymbolClasses = classicTheme
+      ? styles.currencySymbolClassic
+      : styles.currencySymbol;
+    const arrowClasses = isExpanded ? styles.collapseArrow : styles.expandArrow;
 
     const status = intl.formatMessage(assuranceLevelTranslations[assuranceLevel]);
     const currency = intl.formatMessage(environmentSpecificMessages[environment.API].currency);
@@ -213,29 +212,36 @@ export default class Transaction extends Component<Props, State> {
       <div className={componentStyles}>
 
         {/* ==== Clickable Header -> toggles details ==== */}
-        <div className={styles.toggler} onClick={this.toggleDetails.bind(this)} role="presentation" aria-hidden>
+        <div className={togglerClasses} onClick={this.toggleDetails.bind(this)} role="presentation" aria-hidden>
           <div className={styles.togglerContent}>
             <div className={styles.header}>
-              <div className={styles.title}>
+              <div className={titleClasses}>
                 { this.getTransactionHeaderMsg(intl, currency, data.type) }
               </div>
-              <div className={styles.type}>
+              <div className={typeClasses}>
                 {moment(data.date).format('hh:mm:ss A')}
               </div>
               {state === transactionStates.OK ? (
-                <div className={styles[assuranceLevel]}>{status}</div>
+                <div className={labelOkClasses}>{status}</div>
               ) : (
-                <div className={styles[`${state}Label`]}>
+                <div className={labelClasses}>
                   {intl.formatMessage(stateTranslations[state])}
                 </div>
               )}
-              <div className={this.getAmountStyle(data.amount)}>
+
+              <div className={this.getAmountStyle(data.amount, classicTheme)}>
                 {
                   // hide currency (we are showing symbol instead)
                   formattedWalletAmount(data.amount, false)
                 }
-                <SvgInline svg={symbol} className={styles.currencySymbol} cleanup={['title']} />
+                <SvgInline svg={symbol} className={currencySymbolClasses} />
               </div>
+
+              {!classicTheme && (
+                <div className={styles.expandArrowBox}>
+                  <SvgInline className={arrowClasses} svg={expandArrow} />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -257,10 +263,14 @@ export default class Transaction extends Component<Props, State> {
               </div>
             )}
             <div>
-              <h2>
-                {intl.formatMessage(messages.fee)}
-              </h2>
-              <span>{formattedWalletAmount(data.fee.abs(), false)}</span>
+              {data.type !== transactionTypes.INCOME && (
+                <div>
+                  <h2>
+                    {intl.formatMessage(messages.fee)}
+                  </h2>
+                  <span>{formattedWalletAmount(data.fee.abs(), false)}</span>
+                </div>
+              )}
               <h2>
                 {intl.formatMessage(messages.fromAddresses)}
               </h2>
@@ -288,7 +298,7 @@ export default class Transaction extends Component<Props, State> {
               ) : null}
 
               <h2>{intl.formatMessage(messages.transactionId)}</h2>
-              <span>{data.id}</span>
+              <span className={styles.address}>{data.id}</span>
             </div>
           </div>
         </div>

@@ -14,22 +14,18 @@ const messages = defineMessages({
   pendingOutgoingConfirmationLabel: {
     id: 'wallet.summary.page.pendingOutgoingConfirmationLabel',
     defaultMessage: '!!!Outgoing pending confirmation',
-    description: '"Outgoing pending confirmation" label on Wallet summary page'
   },
   pendingIncomingConfirmationLabel: {
     id: 'wallet.summary.page.pendingIncomingConfirmationLabel',
     defaultMessage: '!!!Incoming pending confirmation',
-    description: '"Incoming pending confirmation" label on Wallet summary page'
   },
   numOfTxsLabel: {
     id: 'wallet.summary.page.transactionsLabel',
     defaultMessage: '!!!Number of transactions',
-    description: '"Number of transactions" label on Wallet summary page'
   },
   exportIconTooltip: {
     id: 'wallet.transaction.export.exportIcon.tooltip',
     defaultMessage: '!!!Export to file',
-    description: '"Export" icon tooltip'
   }
 });
 
@@ -38,6 +34,7 @@ type Props = {
   pendingAmount: UnconfirmedAmount,
   isLoadingTransactions: boolean,
   openExportTxToFileDialog: Function,
+  classicTheme: boolean,
 };
 
 @observer
@@ -52,11 +49,13 @@ export default class WalletSummary extends Component<Props> {
       pendingAmount,
       numberOfTransactions,
       isLoadingTransactions,
-      openExportTxToFileDialog
+      openExportTxToFileDialog,
+      classicTheme,
     } = this.props;
     const { intl } = this.context;
+    const componentClasses = classicTheme ? styles.componentClassic : styles.component;
     return (
-      <div className={styles.component}>
+      <div className={componentClasses}>
         <div className={styles.leftBlock} />
         <div className={styles.middleBlock}>
           <BorderedBox>
@@ -64,14 +63,14 @@ export default class WalletSummary extends Component<Props> {
               <div className={styles.pendingConfirmation}>
                 {`${intl.formatMessage(messages.pendingIncomingConfirmationLabel)}`}
                 : <span>{pendingAmount.incoming.toFormat(DECIMAL_PLACES_IN_ADA)}</span>
-                <SvgInline svg={adaSymbolSmallest} className={styles.currencySymbolSmallest} cleanup={['title']} />
+                <SvgInline svg={adaSymbolSmallest} className={styles.currencySymbolSmallest} />
               </div>
             }
             {pendingAmount.outgoing.greaterThan(0) &&
               <div className={styles.pendingConfirmation}>
                 {`${intl.formatMessage(messages.pendingOutgoingConfirmationLabel)}`}
                 : <span>{pendingAmount.outgoing.toFormat(DECIMAL_PLACES_IN_ADA)}</span>
-                <SvgInline svg={adaSymbolSmallest} className={styles.currencySymbolSmallest} cleanup={['title']} />
+                <SvgInline svg={adaSymbolSmallest} className={styles.currencySymbolSmallest} />
               </div>
             }
             {!isLoadingTransactions ? (
@@ -85,7 +84,7 @@ export default class WalletSummary extends Component<Props> {
           {!isLoadingTransactions ? (
             <SvgInline
               svg={exportTxToFileSvg}
-              cleanup={['title']}
+
               className={styles.exportTxToFileSvg}
               title={intl.formatMessage(messages.exportIconTooltip)}
               onClick={openExportTxToFileDialog}
@@ -95,5 +94,4 @@ export default class WalletSummary extends Component<Props> {
       </div>
     );
   }
-
 }

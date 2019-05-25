@@ -12,7 +12,6 @@ const messages = defineMessages({
   loading: {
     id: 'loading.screen.loading',
     defaultMessage: '!!!loading components',
-    description: 'Message "loading components" on the loading screen.'
   },
 });
 
@@ -22,10 +21,7 @@ export default class LoadingPage extends Component<InjectedProps> {
   render() {
     const { stores } = this.props;
     const { loading } = stores;
-    const { hasLoadedCurrentLocale, hasLoadedCurrentTheme } = {
-      hasLoadedCurrentLocale: true,
-      hasLoadedCurrentTheme: true,
-    };
+    const { hasLoadedCurrentLocale, hasLoadedCurrentTheme } = stores.profile;
     return (
       <CenteredLayout>
         <Loading

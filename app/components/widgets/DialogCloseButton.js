@@ -16,8 +16,8 @@ export default class DialogCloseButton extends Component<Props> {
   render() {
     const { onClose, icon } = this.props;
     return (
-      <button type="button" onClick={onClose} className={styles.component}>
-        <SvgInline svg={icon || closeCross} cleanup={['title']} />
+      <button tabIndex="-1" type="button" onClick={onClose} className={styles.component}>
+        <SvgInline svg={icon || closeCross} />
       </button>
     );
   }

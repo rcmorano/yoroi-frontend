@@ -10,13 +10,22 @@
         "account": 0,
         "change": 0,
         "index": 0
+      },
+      {
+        "cadAmount": {
+          "getCCoin": "0"
+        },
+        "cadId": "Ae2tdPwUPEZ6ydLWv4VPC1v7wuXeeWMFbDjTb3oHE2EuVojvoR7Vs1oQwDB",
+        "cadIsUsed": false,
+        "account": 0,
+        "change": 0,
+        "index": 1
       }
     ],
     "usedAddresses": [],
     "masterKey": "f5daab925d1b7ab110ed6e69568307e3708f4795a9a93b40a4db1500574ef9cdaece6aa8a4c18f7325992f40193ea39bd7f808f2bbed3f5f66e53d32f9f097cc9aa64bb6848b7ce5da13ab1175122abe3dabb144a258c23fccf643a7fe190347cccf4a0aeaf2c51162d196323d192da857544a5bc0d5cadd421f733992455fabc842547b284648ec50983145ace133711c40fcbedf972c5023ade7de",
     "password": "aaSecret_123",
     "wallet": {
-      "cwAccountsNumber": 1,
       "cwAmount": {
         "getCCoin": "0"
       },
@@ -54,7 +63,7 @@
         "utxo_id": "12b19af453efc0222d8cb82028554105586c7d134b85490445b2c3c7e74f64290",
         "tx_hash": "12b19af453efc0222d8cb82028554105586c7d134b85490445b2c3c7e74f6429",
         "tx_index": 0,
-        "receiver": "Ae2tdPwUPEYvr4nYAWxbYB8P5vw1BXYKpit7eEWYwzn5zG59bPtjWSmPYWt",
+        "receiver": "Ae2tdPwUPEZKpadvVfHXFfsB11n9RxrYhaX8GL8mW3pLvE4Ay2yiQ56mgXU",
         "amount": "9007199254720698"
       }
     ]
@@ -73,6 +82,7 @@
     ]
   },
   "Generate addresses": {
+    "currentDateExample": "2018-01-01T00:00:00.000Z",
     "utxos": [
       {
         "utxo_id": "12b19af453efc0222d8cb82028554105586c7d134b85490445b2c3c7e74f64290",
@@ -85,7 +95,7 @@
     "walletInitialData": {
       "wallet": {
         "addressesStartingWith": "Ae2tdPwUPEYvr4nYAWxbYB8P5vw1BXYKpit7eEWYwzn5zG59bPtjWSmPYW",
-        "totalAddresses": 1
+        "totalAddresses": 0
       }
     },
     "txs": {
@@ -96,7 +106,7 @@
             "hash": "e97Nafb63e9dc18a54b35cb51i63317461978bc7c90o02661d33lf2464ef693Z",
             "time": "2018-05-12T13:51:33.000Z",
             "inputs_address": [
-              "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoA"
+              "Ae2tzPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoA"
             ],
             "inputs_amount": ["200"],
             "outputs_address": [
@@ -110,7 +120,9 @@
         }
       ]
     },
-    "usedAddresses": ["Ae2tdPwUPEYvr4nYAWxbYB8P5vw1BXYKpit7eEWYwzn5zG59bPtjWSmPYWt"]
+    "usedAddresses": [
+      "Ae2tdPwUPEYvr4nYAWxbYB8P5vw1BXYKpit7eEWYwzn5zG59bPtjWSmPYWt"
+    ]
   },
   "Main UI": {
     "walletInitialData": {
@@ -139,36 +151,36 @@
     ],
     "utxos": [
       {
-        "utxo_id": "Fa1ce0",
-        "tx_hash": "Fa1ce00",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a0",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a00",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoW",
         "amount": "200"
       },
       {
-        "utxo_id": "Fa1ce1",
-        "tx_hash": "Fa1ce10",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a1",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a10",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoW",
         "amount": "-5"
       },
       {
-        "utxo_id": "Fa1ce2",
-        "tx_hash": "Fa1ce20",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a2",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a20",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoW",
         "amount": "100"
       },
       {
-        "utxo_id": "Fa1ce3",
-        "tx_hash": "Fa1ce30",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a3",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a30",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxos",
         "amount": "20000"
       },
       {
-        "utxo_id": "Fa1ce4",
-        "tx_hash": "Fa1ce40",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a4",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a40",
         "tx_index": "0",
         "receiver": "Be2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxod",
         "amount": "9007199254720698"
@@ -203,29 +215,29 @@
     ],
     "utxos": [
       {
-        "utxo_id": "Fa1ce5",
-        "tx_hash": "Fa1ce50",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a5",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a50",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoW",
         "amount": "200"
       },
       {
-        "utxo_id": "Fa1ce6",
-        "tx_hash": "Fa1ce60",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a6",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a60",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoW",
         "amount": "-5"
       },
       {
-        "utxo_id": "Fa1ce7",
-        "tx_hash": "Fa1ce70",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a7",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a70",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxoW",
         "amount": "100"
       },
       {
-        "utxo_id": "Fa1ce8",
-        "tx_hash": "Fa1ce80",
+        "utxo_id": "00000000000000000000000000000000000000000000000000000000000000a8",
+        "tx_hash": "0000000000000000000000000000000000000000000000000000000000000a80",
         "tx_index": "0",
         "receiver": "Ae2tdPwUPEZASB8nPKk1VsePbQZY8ZVv4mGebJ4UwmSBhRo9oR9EqkSzxos",
         "amount": "20000"
@@ -308,7 +320,7 @@
             "outputs_amount": [
               "9007199254720698"
             ],
-            "block_num": 70,
+            "block_num": "70",
             "best_block_num": "101",
             "last_update": "2018-01-01T00:00:00.000Z",
             "tx_state": "Successful"
@@ -417,5 +429,33 @@
       }
     ]
   },
-  "General Settings": {}
+  "General Settings": {},
+  "Ada Redemption": {
+    "utxos": [
+      {
+        "tx_hash": "d2f5bc49b3688bf11d09145583a1b337c288dd8384c7495b74fedb3aeb528b04",
+        "tx_index": 1,
+        "receiver": "Ae2tdPwUPEZ2XP4BGUHeMDRohtbLMm8MgwwwW86a2Mozyh3oMhza2f1H6Lz",
+        "amount": "1000"
+      },
+      {
+        "tx_hash": "d2f5bc49b3688bf11d09145583a1b337c288dd8384c7495b74fedb3aeb528b04",
+        "tx_index": 1,
+        "receiver": "Ae2tdPwUPEZ8dx9F8nGyRmLCQEHjSjbL8pBVwPsiL5tiCLqZiYD5poMCUwJ",
+        "amount": "1000"
+      },
+      {
+        "tx_hash": "d2f5bc49b3688bf11d09145583a1b337c288dd8384c7495b74fedb3aeb528b04",
+        "tx_index": 1,
+        "receiver": "Ae2tdPwUPEZ2UnSp2Px3wqZGJs3AUn5vcRQCTpPrcxGBWkAnAvB9JNNEtAb",
+        "amount": "1000"
+      },
+      {
+        "tx_hash": "d2f5bc49b3688bf11d09145583a1b337c288dd8384c7495b74fedb3aeb528b04",
+        "tx_index": 1,
+        "receiver": "Ae2tdPwUPEZFS38pQd5nbC5vqyicSHSgRkjr5p3mFxRrVgVn2fMKSxDR1qY",
+        "amount": "1000"
+      }
+    ]
+  }
 }

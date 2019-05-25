@@ -7,8 +7,6 @@ import type { ConfigType } from '../../config/config-types';
 
 import environment from '../environment';
 
-export const version = require('../../chrome/manifest.' + environment.NETWORK + '.json').version;
-
 const logger = console;
 declare var CONFIG: ConfigType;
 const { logsBufferSize, logsFileSuffix } = CONFIG.app;
@@ -30,7 +28,7 @@ export const Logger = {
   },
 
   warn: (data : string) => {
-    logger.info(data);
+    logger.warn(data);
   }
 };
 
@@ -48,7 +46,7 @@ export const downloadLogs = () => {
 // ========== STRINGIFY =========
 
 export const generateLogHeader = () => (
-  `[INFO] Yoroi v.${version}\r\n[INFO] Commit: ${environment.commit}\r\n[INFO] Network: ${environment.NETWORK}\r\n`
+  `[INFO] Yoroi v.${environment.version}\r\n[INFO] Commit: ${environment.commit}\r\n[INFO] Network: ${environment.NETWORK}\r\n`
 );
 
 export const stringifyData = (data : any) => JSON.stringify(data, null, 2);

@@ -1,5 +1,8 @@
 # Yoroi - Cardano ADA wallet
 
+Build status for mainnet:[![Build Status](https://travis-ci.com/rcmorano/yoroi-frontend.svg?branch=master)
+Build status for testnet:[![Build Status](https://travis-ci.com/rcmorano/yoroi-frontend.svg?branch=staging)
+
 ## Contributing
 
 Check out our [documents](docs/specs/meta) on the governance of this project.
@@ -53,7 +56,12 @@ I suggest instead installing the `mainnet` build as it does not use `localhost`.
 
 ## Test
 
-* `features`: E2E tests (use [chromedriver](https://www.npmjs.com/package/chromedriver), [selenium-webdriver](https://www.npmjs.com/package/selenium-webdriver))
+### Selenium + Cucumber
+You **must** run `npm run test-prepare` **before** running the tests!
+
+`test-prepare` will *BUILD* the extension and then the tests will *LOAD* the extension.
+
+Rerun `test-prepare` anytime you make changes to the application itself. If you only change test files, you do not need to rerun it.
 
 ```bash
 # flow
@@ -61,37 +69,19 @@ $ npm run flow
 # lint
 $ npm run eslint
 # features (command to run all existing tests)
-$ npm run test-prepare
 $ npm run test-e2e-chrome
 # How to run one .feature file (One feature file = one covered component from youtrack)
 $ npm run test-by-feature feature/wallet-creation.feature
-# How to run one test. Instead of '@it-10' you can use any tag from youtrack
+# How to run one test.
 $ npm run test-by-tag @it-10
 ```
 
- 
+### Jest
 
-## Update Cardano crypto library
-
-In order to update it run the following commands:
+We use Jest for unittests.
 
 ```bash
-# Update js-cardano-wasm
-cd js-cardano-wasm;
-git checkout master;
-git pull origin master;
-cd ..;
-
-# Commit the update
-git add .
-git commit -S -m "${youCommitMessage}"
-git push ...
-
-# Re-install the module
-$ npm run build-js-cardano-wasm 
-$ npm install
-
-# At this point you can go back to Development steps. 
+$ npm run jest
 ```
 
 ## LICENSE

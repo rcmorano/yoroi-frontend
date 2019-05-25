@@ -12,8 +12,8 @@ export default class DialogBackButton extends Component<Props> {
   render() {
     const { onBack } = this.props;
     return (
-      <button type="button" onClick={onBack} className={styles.component}>
-        <SvgInline svg={backArrow} cleanup={['title']} />
+      <button tabIndex="-1" type="button" onClick={onBack} className={styles.component}>
+        <SvgInline svg={backArrow} />
       </button>
     );
   }

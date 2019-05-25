@@ -10,36 +10,31 @@ import globalMessages from '../../i18n/global-messages';
 import styles from './TransferInstructionsPage.scss';
 
 const messages = defineMessages({
-  instructionTitle: {
-    id: 'transfer.instructions.instructions.title.label',
-    defaultMessage: '!!!Instructions',
-    description: 'Label "Instructions" on the transfer instructions page.'
-  },
   instructionsText: {
     id: 'transfer.instructions.instructions.text',
     defaultMessage: '!!!Before you can transfer funds, you must create a Yoroi wallet and back it up. Upon completion, you will receive a 15-word recovery phrase which can be used to restore your Yoroi wallet at any time.',
-    description: 'Instructions text on the transfer instructions page.'
   },
   instructionsButton: {
     id: 'transfer.instructions.instructions.button.label',
     defaultMessage: '!!!Create Yoroi wallet',
-    description: 'Label "Create Yoroi wallet" on the transfer instructions page.'
   },
   attentionTitle: {
     id: 'transfer.instructions.attention.title.label',
     defaultMessage: '!!!Attention',
-    description: 'Label "Attention" on the transfer instructions page.'
   },
 });
-
-messages.fieldIsRequired = globalMessages.fieldIsRequired;
 
 type Props = {
   onFollowInstructionsPrerequisites: Function,
   onConfirm: Function,
+  onPaperConfirm: Function,
+  onMasterKeyConfirm: Function,
   disableTransferFunds: boolean,
   attentionText: string,
-  confirmationText: string
+  confirmationTitleText: string,
+  confirmationText: string,
+  confirmationPaperText: string,
+  confirmationMasterKeyText: string,
 };
 
 @observer
@@ -54,9 +49,14 @@ export default class TransferInstructionsPage extends Component<Props> {
     const {
       onFollowInstructionsPrerequisites,
       onConfirm,
+      onPaperConfirm,
+      onMasterKeyConfirm,
       disableTransferFunds,
       attentionText,
-      confirmationText
+      confirmationTitleText,
+      confirmationText,
+      confirmationPaperText,
+      confirmationMasterKeyText,
     } = this.props;
 
     const instructionsButtonClasses = classnames([
@@ -82,7 +82,7 @@ export default class TransferInstructionsPage extends Component<Props> {
 
               <div>
                 <div className={styles.title}>
-                  {intl.formatMessage(messages.instructionTitle)}
+                  {intl.formatMessage(globalMessages.instructionTitle)}
                 </div>
                 <div className={styles.text}>
                   {intl.formatMessage(messages.instructionsText)}
@@ -118,10 +118,30 @@ export default class TransferInstructionsPage extends Component<Props> {
                 </div>
               </div>
 
+              <div className={styles.buttonTitle}>
+                {confirmationTitleText}
+              </div>
+
               <Button
                 className={confirmButtonClasses}
                 label={confirmationText}
                 onClick={onConfirm}
+                disabled={disableTransferFunds}
+                skin={ButtonSkin}
+              />
+
+              <Button
+                className={confirmButtonClasses}
+                label={confirmationPaperText}
+                onClick={onPaperConfirm}
+                disabled={disableTransferFunds}
+                skin={ButtonSkin}
+              />
+
+              <Button
+                className={`masterKey ${confirmButtonClasses}`} // append class for testing
+                label={confirmationMasterKeyText}
+                onClick={onMasterKeyConfirm}
                 disabled={disableTransferFunds}
                 skin={ButtonSkin}
               />

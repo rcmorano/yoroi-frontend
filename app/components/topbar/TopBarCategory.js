@@ -10,27 +10,29 @@ type Props = {
   active: boolean,
   onClick: Function,
   className: string,
+  classicTheme: boolean
 };
 
 @observer
 export default class TopBarCategory extends Component<Props> {
   render() {
-    const { icon, active, onClick, className } = this.props;
+    const { icon, active, onClick, className, classicTheme } = this.props;
     const componentStyles = classNames([
-      styles.component,
+      classicTheme ? styles.componentClassic : styles.component,
       active ? styles.active : null,
       className
     ]);
 
     const iconStyles = classNames([
       className === 'wallets' ? styles.walletsIcon : null,
+      className === 'with-ledger-nano-s' ? styles.withLedgerNanoSIcon : null,
       className === 'with-trezor-t' ? styles.withTrezorTIcon : null,
       styles.icon
     ]);
 
     return (
       <button type="button" className={componentStyles} onClick={onClick}>
-        <SvgInline svg={icon} className={iconStyles} cleanup={['title']} />
+        <SvgInline svg={icon} className={iconStyles} />
       </button>
     );
   }

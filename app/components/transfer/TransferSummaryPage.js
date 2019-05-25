@@ -14,37 +14,30 @@ const messages = defineMessages({
   addressFromLabel: {
     id: 'transfer.summary.addressFrom.label',
     defaultMessage: '!!!From',
-    description: 'Label showing addresses where the tx will be from',
   },
   addressToLabel: {
     id: 'transfer.summary.addressTo.label',
     defaultMessage: '!!!To',
-    description: 'Label showing addresses where the tx will be sent',
   },
   recoveredBalanceLabel: {
     id: 'transfer.summary.recoveredBalance.label',
     defaultMessage: '!!!Recovered balance',
-    description: 'Label showing total recovered balance',
   },
   transactionFeeLabel: {
     id: 'transfer.summary.transactionFee.label',
     defaultMessage: '!!!Transaction fees',
-    description: 'Label showing transaction fees when transferring',
   },
   finalBalanceLabel: {
     id: 'transfer.summary.finalBalance.label',
     defaultMessage: '!!!Final balance',
-    description: 'Label showing final balance',
   },
   cancelTransferButtonLabel: {
     id: 'transfer.summary.cancelTransferButton.label',
     defaultMessage: '!!!Cancel',
-    description: 'Cancel button text',
   },
   transferButtonLabel: {
     id: 'transfer.summary.transferButton.label',
     defaultMessage: '!!!Transfer Funds',
-    description: 'Do tansfer button text',
   }
 });
 
@@ -55,7 +48,8 @@ type Props = {
   isSubmitting: boolean,
   onCancel: Function,
   error: ?LocalizableError,
-  addressFromSubLabel: string
+  addressFromSubLabel: string,
+  classicTheme: boolean
 };
 
 /** Show user what the transfer would do to get final confirmation */
@@ -68,7 +62,7 @@ export default class TransferSummaryPage extends Component<Props> {
 
   render() {
     const { intl } = this.context;
-    const { transferTx, isSubmitting, error, addressFromSubLabel } = this.props;
+    const { transferTx, isSubmitting, error, addressFromSubLabel, classicTheme } = this.props;
 
     const receiver = transferTx.receiver;
     const recoveredBalance = this.props.formattedWalletAmount(transferTx.recoveredBalance);
@@ -85,7 +79,7 @@ export default class TransferSummaryPage extends Component<Props> {
 
     const cancelButtonClasses = classnames([
       'cancelTransferButton',
-      'flat',
+      classicTheme ? 'flat' : 'outlined',
       styles.button,
     ]);
 

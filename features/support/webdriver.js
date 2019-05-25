@@ -6,6 +6,8 @@ import chrome from 'selenium-webdriver/chrome';
 import firefox from 'selenium-webdriver/firefox';
 import path from 'path';
 
+const fs = require('fs');
+
 /**
  * Chrome extension URLs are fixed and never change. This is a security problem as it allows
  * websites to check if you have certain known extensions installed by monitoring the browser's
@@ -23,6 +25,22 @@ import path from 'path';
  */
 const firefoxExtensionId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const firefoxUuidMapping = `{"{530f7c6c-6077-4703-8f71-cb368c663e35}":"${firefoxExtensionId}"}`;
+
+function getBraveBuilder() {
+  return new seleniumWebdriver.Builder()
+    .withCapabilities({
+      chromeOptions: {
+        args: [
+          'start-maximized'
+        ]
+      }
+    })
+    .forBrowser('chrome')
+    .setChromeOptions(new chrome.Options()
+      .setChromeBinaryPath('/usr/bin/brave-browser')
+      .addArguments('--start-maximized', '--disable-setuid-sandbox', '--no-sandbox')
+      .addExtensions(path.resolve(__dirname, '../../yoroi-test.crx')));
+}
 
 function getChromeBuilder() {
   return new seleniumWebdriver.Builder()
@@ -65,19 +83,32 @@ function getFirefoxBuilder() {
 
 type WorldInput = {
   parameters: {
-    browser: 'chrome' | 'firefox'
+    browser: 'brave' | 'chrome' | 'firefox'
   }
 };
 
 // TODO: We should add methods to `this.driver` object, instead of use `this` directly
 function CustomWorld(cmdInput: WorldInput) {
-  const builder = cmdInput.parameters.browser === 'chrome'
-    ? getChromeBuilder()
-    : getFirefoxBuilder();
-  this.driver = builder.build();
+  switch (cmdInput.parameters.browser) {
+    case 'brave': {
+      const braveBuilder = getBraveBuilder();
+      this.driver = braveBuilder.build();
+      break;
+    }
+    case 'firefox': {
+      const firefoxBuilder = getFirefoxBuilder();
+      this.driver = firefoxBuilder.build();
+      break;
+    }
+    default: {
+      const chromeBuilder = getChromeBuilder();
+      this.driver = chromeBuilder.build();
+      break;
+    }
+  }
 
   this.getExtensionUrl = (): string => {
-    if (cmdInput.parameters.browser === 'chrome') {
+    if (cmdInput.parameters.browser === 'chrome' || cmdInput.parameters.browser === 'brave') {
       /**
        * Extension id is determinisitically calculated based on pubKey used to generate the crx file
        * so we can just hardcode this value if we keep e2etest-key.pem file
@@ -193,16 +224,42 @@ function CustomWorld(cmdInput: WorldInput) {
     )
   );
 
-  this.saveAddressesToDB = addresses => (
-    this.driver.executeScript(addrs => {
-      addrs.forEach(addr => window.yoroi.api.ada.saveAddress(addr, 'External'));
-    }, addresses)
+  this.dropDB = () => (
+    this.driver.executeScript(() => window.yoroi.api.ada.dropDB())
+  );
+
+  this.saveAddressesToDB = (addresses, type) => (
+    this.driver.executeScript((addrs, addrType) => {
+      addrs.forEach(addr => window.yoroi.api.ada.saveAddress({
+        address: addr,
+        addressType: addrType
+      }));
+    }, addresses, type)
   );
 
   this.saveTxsToDB = transactions => {
     this.driver.executeScript(txs => {
-      window.yoroi.api.ada.saveTxs(txs);
+      window.yoroi.api.ada.saveTxs({ txs });
     }, transactions);
+  };
+
+  this.chooseFile = async (filePath, fileType) => {
+    const certificateFileContent = fs.readFileSync(filePath);
+    await this.driver.executeScript((fileContent, type) => {
+      const content = new Uint8Array(fileContent.data);
+      const certificate = new Blob([content], { type });
+      window.yoroi.actions.ada.adaRedemption.setCertificate.trigger({ certificate });
+    }, certificateFileContent, fileType);
+  };
+
+  this.enterPassphrase = async passphrase => {
+    for (let i = 0; i < passphrase.length; i++) {
+      const word = passphrase[i];
+      await this.input('.AdaRedemptionForm_scrollableContent .pass-phrase input', word);
+      await this.waitForElement(`//li[contains(text(), '${word}')]`, By.xpath);
+      await this.click(`//li[contains(text(), '${word}')]`, By.xpath);
+      await this.waitForElement(`//span[contains(text(), '${word}')]`, By.xpath);
+    }
   };
 }
 

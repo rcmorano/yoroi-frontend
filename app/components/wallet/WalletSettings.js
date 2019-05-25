@@ -15,22 +15,18 @@ const messages = defineMessages({
   name: {
     id: 'wallet.settings.name.label',
     defaultMessage: '!!!Name',
-    description: 'Label for the "Name" text input on the wallet settings page.',
   },
   passwordLabel: {
     id: 'wallet.settings.password',
     defaultMessage: '!!!Password',
-    description: 'Label for the "Password" field.',
   },
   passwordLastUpdated: {
     id: 'wallet.settings.passwordLastUpdated',
     defaultMessage: '!!!Last updated',
-    description: 'Last updated X time ago message.',
   },
   exportButtonLabel: {
     id: 'wallet.settings.exportWalletButtonLabel',
     defaultMessage: '!!!Export wallet',
-    description: 'Label for the export button on wallet settings.',
   },
 });
 
@@ -51,6 +47,7 @@ type Props = {
   isInvalid: boolean,
   lastUpdatedField: ?string,
   showPasswordBlock: boolean,
+  classicTheme: boolean,
 };
 
 @observer
@@ -78,7 +75,7 @@ export default class WalletSettings extends Component<Props> {
       nameValidator, activeField,
       isSubmitting, isInvalid,
       lastUpdatedField, dialog,
-      showPasswordBlock
+      showPasswordBlock, classicTheme,
     } = this.props;
     const passwordMessage = (
       intl.formatMessage(messages.passwordLastUpdated, {
@@ -100,6 +97,7 @@ export default class WalletSettings extends Component<Props> {
           isValid={nameValidator}
           validationErrorMessage={intl.formatMessage(globalMessages.invalidWalletName)}
           successfullyUpdated={!isSubmitting && lastUpdatedField === 'name' && !isInvalid}
+          classicTheme={classicTheme}
         />
 
         {showPasswordBlock &&
@@ -110,6 +108,7 @@ export default class WalletSettings extends Component<Props> {
             onClick={() => openDialogAction({
               dialog: ChangeWalletPasswordDialog,
             })}
+            classicTheme={classicTheme}
           />}
 
         {error && <p className={styles.error}>{intl.formatMessage(error)}</p>}

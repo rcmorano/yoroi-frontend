@@ -13,14 +13,17 @@ import {
   generateWalletMasterKey,
   generateAdaMnemonic,
   isValidEnglishAdaMnemonic,
+  isValidEnglishAdaPaperMnemonic,
+  unscramblePaperAdaMnemonic,
   updateWalletMasterKeyPassword,
+  scramblePaperAdaMnemonic,
+  mnemonicsToAddresses
 } from './lib/cardanoCrypto/cryptoWallet';
 import { toAdaWallet, toAdaHardwareWallet } from './lib/cardanoCrypto/cryptoToModel';
 import {
   getAdaAddressesList,
-  newAdaAddress
 } from './adaAddress';
-import { newCryptoAccount } from './adaAccount';
+import { createCryptoAccount } from './adaAccount';
 import type {
   AdaWallet,
   AdaWalletParams,
@@ -28,30 +31,35 @@ import type {
   AdaHardwareWalletParams,
 } from './adaTypes';
 import type {
-  ChangeAdaWalletSpendingPasswordParams,
-  AdaWalletRecoveryPhraseResponse,
-} from './index';
-import {
-  getUTXOsSumsForAddresses
-} from './lib/yoroi-backend-api';
-import type {
-  UtxoSumForAddressesResponse
-} from './lib/yoroi-backend-api';
+  FilterFunc,
+  UtxoSumFunc,
+  UtxoSumResponse
+} from './lib/state-fetch/types';
 import { UpdateAdaWalletError, GetBalanceError } from './errors';
-import { saveAdaWallet, getAdaWallet, getWalletMasterKey } from './adaLocalStorage';
+import {
+  getAdaWallet,
+  getWalletMasterKey,
+  saveAdaWallet,
+  saveWalletMasterKey
+} from './adaLocalStorage';
 import type { ConfigType } from '../../../config/config-types';
+import { restoreTransactionsAndSave } from './restoreAdaWallet';
+import type { WalletAccountNumberPlate } from '../../domain/Wallet';
 
 declare var CONFIG : ConfigType;
 const addressesLimit = CONFIG.app.addressRequestSize;
 
 /* Create and save a wallet with your master key, and a SINGLE account with one address */
 export async function newAdaWallet(
-  { walletPassword, walletInitData }: AdaWalletParams
+  { walletPassword, walletInitData }: AdaWalletParams,
+  checkAddressesInUse: FilterFunc,
 ): Promise<AdaWallet> {
   const [adaWallet, masterKey] = createAdaWallet({ walletPassword, walletInitData });
-  const cryptoAccount = newCryptoAccount(masterKey, walletPassword);
-  await newAdaAddress(cryptoAccount, 'External');
-  saveAdaWallet(adaWallet, masterKey);
+  // always restore the 0th account
+  const cryptoAccount = createCryptoAccount(masterKey, walletPassword, 0);
+
+  // creating an account same as restoring an account plus some initial setup
+  await restoreTransactionsAndSave(cryptoAccount, adaWallet, masterKey, checkAddressesInUse);
   return Promise.resolve(adaWallet);
 }
 
@@ -68,7 +76,7 @@ export const updateAdaWalletMetaParams = async (
     const updatedWallet = Object.assign({}, persistentWallet, { cwMeta: walletMeta });
 
     // Update the meta params cached in localstorage
-    _saveAdaWalletKeepingMasterKey(updatedWallet);
+    saveAdaWallet(updatedWallet);
     return updatedWallet;
   } catch (error) {
     Logger.error('adaWallet::updateAdaWalletMetaParams error: ' + stringifyError(error));
@@ -77,7 +85,9 @@ export const updateAdaWalletMetaParams = async (
 };
 
 /** Calculate balance and update wallet balance cached in localstorage */
-export const updateAdaWalletBalance = async (): Promise<?BigNumber> => {
+export const updateAdaWalletBalance = async (
+  getUTXOsSumsForAddresses: UtxoSumFunc,
+): Promise<?BigNumber> => {
   // Get existing wallet or return if non exists
   const persistentWallet = getAdaWallet();
   if (!persistentWallet) return Promise.resolve();
@@ -90,12 +100,12 @@ export const updateAdaWalletBalance = async (): Promise<?BigNumber> => {
     // Calculate and set new user balance
     const updatedWallet = Object.assign({}, persistentWallet, {
       cwAmount: {
-        getCCoin: await getBalance(addresses)
+        getCCoin: await getBalance(addresses, getUTXOsSumsForAddresses)
       }
     });
 
     // Update the balance cached in localstorage
-    _saveAdaWalletKeepingMasterKey(updatedWallet);
+    saveAdaWallet(updatedWallet);
     return updatedWallet.cwAmount.getCCoin;
   } catch (error) {
     Logger.error('adaWallet::updateAdaWalletBalance error: ' + stringifyError(error));
@@ -111,6 +121,7 @@ export function createAdaWallet(
 
   const mnemonic = walletInitData.cwBackupPhrase.bpToList;
   const masterKey = generateWalletMasterKey(mnemonic, walletPassword);
+
   return [adaWallet, masterKey];
 }
 
@@ -122,6 +133,23 @@ export const isValidMnemonic = (
   isValidEnglishAdaMnemonic(phrase, numberOfWords)
 );
 
+/** Wrapper function to check paper mnemonic validity according to bip39 */
+export const isValidPaperMnemonic = (
+  phrase: string,
+  numberOfWords: ?number
+): boolean => (
+  isValidEnglishAdaPaperMnemonic(phrase, numberOfWords)
+);
+
+/** Wrapper function to check paper mnemonic validity according to bip39 */
+export const unscramblePaperMnemonic = (
+  phrase: string,
+  numberOfWords: ?number,
+  password?: string,
+): [?string, number] => (
+  unscramblePaperAdaMnemonic(phrase, numberOfWords, password)
+);
+
 /** Wrapper function to create new Trezor ADA hardware wallet object */
 export function createAdaHardwareWallet({
   walletInitData
@@ -131,13 +159,39 @@ export function createAdaHardwareWallet({
 }
 
 /** Wrapper function to create new mnemonic according to bip39 */
-export const generateAdaAccountRecoveryPhrase = (): AdaWalletRecoveryPhraseResponse => (
+export const generateAdaAccountRecoveryPhrase: void => Array<string> = () => (
   generateAdaMnemonic()
+);
+
+/**
+ * This type represents the very secret part of a paper wallet.
+ * Should be handled with care and never exposed.
+ */
+export type PaperWalletSecret = {
+  words: Array<string>,
+  scrambledWords: Array<string>,
+};
+
+export const generatePaperWalletSecret = (password: string): PaperWalletSecret => {
+  const words = generateAdaMnemonic();
+  const scrambledWords = scramblePaperAdaMnemonic(words.join(' '), password).split(' ');
+  return { words, scrambledWords };
+};
+
+export const mnemonicsToExternalAddresses = (
+  mnemonics: string,
+  count?: number
+): {
+  addresses: Array<string>,
+  accountPlate: WalletAccountNumberPlate
+} => (
+  mnemonicsToAddresses(mnemonics, count)
 );
 
 /** Call backend-service to get the balances of addresses and then sum them */
 export async function getBalance(
-  addresses: Array<string>
+  addresses: Array<string>,
+  getUTXOsSumsForAddresses: UtxoSumFunc,
 ): Promise<BigNumber> {
   try {
     // batch all addresses into chunks for API
@@ -146,7 +200,7 @@ export async function getBalance(
       groupsOfAddresses.map(groupOfAddresses => getUTXOsSumsForAddresses(
         { addresses: groupOfAddresses }
       ));
-    const partialAmounts: Array<UtxoSumForAddressesResponse> = await Promise.all(promises);
+    const partialAmounts: Array<UtxoSumResponse> = await Promise.all(promises);
 
     // sum all chunks together
     return partialAmounts.reduce(
@@ -167,12 +221,21 @@ export async function getBalance(
 
 /** Update spending password and password last update time */
 export const changeAdaWalletSpendingPassword = (
-  { oldPassword, newPassword }: ChangeAdaWalletSpendingPasswordParams
+  { oldPassword, newPassword }: {
+    oldPassword: string,
+    newPassword: string,
+  }
 ): Promise<AdaWallet> => {
   // update spending password
-  const walletMasterKey = getWalletMasterKey();
-  const updatedWalletMasterKey =
-    updateWalletMasterKeyPassword(walletMasterKey, oldPassword, newPassword);
+  {
+    const walletMasterKey = getWalletMasterKey();
+    const updatedWalletMasterKey = updateWalletMasterKeyPassword(
+      walletMasterKey,
+      oldPassword,
+      newPassword
+    );
+    saveWalletMasterKey(updatedWalletMasterKey);
+  }
 
   // update password last update time
   const wallet = getAdaWallet();
@@ -183,14 +246,7 @@ export const changeAdaWalletSpendingPassword = (
   );
 
   // save result in cache
-  saveAdaWallet(updatedWallet, updatedWalletMasterKey);
+  saveAdaWallet(updatedWallet);
+
   return Promise.resolve(updatedWallet);
 };
-
-/** Swap the cached wallet information in localstorage but keep the wallet itself the same */
-function _saveAdaWalletKeepingMasterKey(
-  adaWallet: AdaWallet
-): void {
-  const masterKey = getWalletMasterKey();
-  saveAdaWallet(adaWallet, masterKey);
-}

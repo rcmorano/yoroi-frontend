@@ -1,7 +1,5 @@
 // @flow
 import { observable, computed, when, runInAction } from 'mobx';
-import { loadRustModule } from 'rust-cardano-crypto';
-import { loadLovefieldDB } from '../../api/ada/lib/lovefieldDatabase';
 import Store from '../base/Store';
 import Wallet from '../../domain/Wallet';
 import environment from '../../environment';
@@ -9,6 +7,13 @@ import { ROUTES } from '../../routes-config';
 import LocalizableError, {
   localizedError
 } from '../../i18n/LocalizableError';
+import Request from '../lib/LocalizedRequest';
+import type { MigrationRequest } from '../../api';
+import { migrate } from '../../api';
+import { Logger, stringifyError } from '../../utils/logging';
+import { closeOtherInstances } from '../../utils/tabManager';
+
+import { RustModule } from '../../api/ada/lib/cardanoCrypto/rustLoader';
 
 /** Load dependencies before launching the app */
 export default class LoadingStore extends Store {
@@ -16,19 +21,37 @@ export default class LoadingStore extends Store {
   @observable error: ?LocalizableError = null;
   @observable _loading: boolean = true;
 
+  @observable loadRustRequest: Request<void => Promise<void>>
+    = new Request<void => Promise<void>>(RustModule.load.bind(RustModule));
+
+  @observable migrationRequest: Request<MigrationRequest => Promise<void>>
+    = new Request<MigrationRequest => Promise<void>>(migrate);
+
+  // TODO: Should not make currency-specific requests in a toplevel store
+  @observable loadDbRequest: Request<void => Promise<void>>
+    = new Request<void => Promise<void>>(this.api.ada.loadDB);
+
   setup() {
+  }
+
+  load() {
     when(this._isRefresh, this._redirectToLoading);
-    Promise.all([loadRustModule(), loadLovefieldDB()])
+    Promise
+      .all([this.loadRustRequest.execute().promise, this.loadDbRequest.execute().promise])
       .then(async () => {
+        closeOtherInstances();
+        await this.migrationRequest.execute({
+          api: this.api,
+          currVersion: environment.version
+        }).promise;
         await this._openPageAfterLoad();
         runInAction(() => {
           this.error = null;
           this._loading = false;
         });
         return undefined;
-      })
-      .catch((error) => {
-        console.error('LoadingStore::setup Unable to load libraries', error);
+      }).catch((error) => {
+        Logger.error('LoadingStore::setup Unable to load libraries ' + stringifyError(error));
         runInAction(() => {
           this.error = localizedError(new UnableToLoadError());
           this._loading = false;
@@ -74,7 +97,6 @@ export class UnableToLoadError extends LocalizableError {
     super({
       id: 'app.errors.unableToLoad',
       defaultMessage: '!!!Unable to load',
-      description: '"Unable to load" error message'
     });
   }
 }

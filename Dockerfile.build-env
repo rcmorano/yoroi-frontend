@@ -1,0 +1,11 @@
+# base build environment
+ARG NODE_VERSION=10
+ARG BASE_IMAGE=node:${NODE_VERSION}
+FROM ${BASE_IMAGE} AS rust-env-setup
+ENV NODE_VERSION ${NODE_VERSION}
+ARG RUST_VERSION=1.32.0
+ENV RUST_VERSION ${RUST_VERSION}
+
+COPY ./docker-assets/bin/rust-setup.functions /src/docker-assets/bin/rust-setup.functions
+RUN /bin/bash -c 'source /src/docker-assets/bin/rust-setup.functions && \
+    rust-setup'

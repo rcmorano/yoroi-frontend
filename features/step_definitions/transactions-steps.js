@@ -1,25 +1,8 @@
 // @flow
 
-import { Given, When, Then, Before, After } from 'cucumber';
+import { Given, When, Then } from 'cucumber';
 import { expect } from 'chai';
-import { getMockServer, closeMockServer } from '../support/mockServer';
 import i18n from '../support/helpers/i18n-helpers';
-
-Before({ tags: '@invalidWitnessTest' }, () => {
-  closeMockServer();
-  getMockServer({
-    signedTransaction: (req, res) => {
-      res.status(400).jsonp({
-        message: 'Invalid witness'
-      });
-    }
-  });
-});
-
-After({ tags: '@invalidWitnessTest' }, () => {
-  closeMockServer();
-  getMockServer({});
-});
 
 Given(/^I have a wallet with funds$/, async function () {
   await this.driver.wait(async () => {
@@ -61,7 +44,7 @@ When(/^I fill the receiver as "([^"]*)"$/, async function (receiver) {
 });
 
 When(/^The transaction fees are "([^"]*)"$/, async function (fee) {
-  await this.waitUntilText('.AmountInputSkin_fees', `+ ${fee} of fees`);
+  await this.waitUntilText('.AmountInputSkin_feesClassic', `+ ${fee} of fees`);
 });
 
 When(/^I click on the next button in the wallet send form$/, async function () {
@@ -82,7 +65,7 @@ When(/^I submit the wallet send form$/, async function () {
 });
 
 Then(/^I should see the summary screen$/, async function () {
-  await this.waitForElement('.WalletSummary_component');
+  await this.waitForElement('.WalletSummary_componentClassic');
 });
 
 Then(/^I should see an invalid address error$/, async function () {
@@ -106,4 +89,22 @@ Then(/^I should see an invalid signature error message$/, async function () {
 Then(/^I should see an incorrect wallet password error message$/, async function () {
   const errorMessage = await i18n.formatMessage(this.driver, { id: 'api.errors.IncorrectPasswordError' });
   await this.waitUntilText('.WalletSendConfirmationDialog_error', errorMessage);
+});
+
+/**
+ * This is a hack to generate a completely different wallet within a test file
+ */
+Given(/^I cleared my local balance$/, async function () {
+  // first switch the xpub so the generated addresses are different
+  const myAccount = await this.getFromLocalStorage('ACCOUNT');
+  myAccount.root_cached_key = '815c1f331d4a7bbf2c1e15ee8983bf9b7abb980f15cecb1f868920ec2b7cf19cab1e147544a2a0550a3d5d3b527aeb0db8af42756e68572e1e96142990d27d6c';
+  await this.saveToLocalStorage('ACCOUNT', myAccount);
+
+  // then drop the DB state so all previous saved addresses are gone
+  await this.dropDB();
+
+  // next clear the cached local balance
+  const myWallet = await this.getFromLocalStorage('WALLET');
+  myWallet.adaWallet.cwAmount = { getCCoin: '0' };
+  await this.saveToLocalStorage('WALLET', myWallet);
 });

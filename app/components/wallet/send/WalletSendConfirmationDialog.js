@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import { Input } from 'react-polymorph/lib/components/Input';
 import { InputSkin } from 'react-polymorph/lib/skins/simple/InputSkin';
+import { InputOwnSkin } from '../../../themes/skins/InputOwnSkin';
 import { defineMessages, intlShape } from 'react-intl';
 import ReactToolboxMobxForm from '../../../utils/ReactToolboxMobxForm';
 import Dialog from '../../widgets/Dialog';
@@ -14,26 +15,22 @@ import DialogCloseButton from '../../widgets/DialogCloseButton';
 import globalMessages from '../../../i18n/global-messages';
 import LocalizableError from '../../../i18n/LocalizableError';
 import styles from './WalletSendConfirmationDialog.scss';
+import config from '../../../config';
 
 const messages = defineMessages({
   walletPasswordLabel: {
     id: 'wallet.send.confirmationDialog.walletPasswordLabel',
     defaultMessage: '!!!Spending password',
-    description: 'Label for the "Spending password" input in the wallet send confirmation dialog.',
   },
   walletPasswordFieldPlaceholder: {
     id: 'wallet.send.confirmationDialog.walletPasswordFieldPlaceholder',
     defaultMessage: '!!!Type your spending password',
-    description: 'Placeholder for the "Spending password" inputs in the wallet send confirmation dialog.',
   },
   sendButtonLabel: {
     id: 'wallet.send.confirmationDialog.submit',
     defaultMessage: '!!!Send',
-    description: 'Label for the send button in the wallet send confirmation dialog.'
   },
 });
-
-messages.fieldIsRequired = globalMessages.fieldIsRequired;
 
 type Props = {
   amount: string,
@@ -46,6 +43,7 @@ type Props = {
   isSubmitting: boolean,
   error: ?LocalizableError,
   currencyUnit: string,
+  classicTheme: boolean
 };
 
 @observer
@@ -64,7 +62,7 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
         value: '',
         validators: [({ field }) => {
           if (field.value === '') {
-            return [false, this.context.intl.formatMessage(messages.fieldIsRequired)];
+            return [false, this.context.intl.formatMessage(globalMessages.fieldIsRequired)];
           }
           return [true];
         }],
@@ -73,7 +71,7 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
   }, {
     options: {
       validateOnChange: true,
-      validationDebounceWait: 250,
+      validationDebounceWait: config.forms.FORM_VALIDATION_DEBOUNCE_WAIT,
     },
   });
 
@@ -105,7 +103,8 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
       transactionFee,
       isSubmitting,
       error,
-      currencyUnit
+      currencyUnit,
+      classicTheme
     } = this.props;
 
     const confirmButtonClasses = classnames([
@@ -115,7 +114,7 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
 
     const actions = [
       {
-        label: intl.formatMessage(globalMessages.walletSendConfirmationBackButtonLabel),
+        label: intl.formatMessage(globalMessages.backButtonLabel),
         onClick: isSubmitting
           ? () => {} // noop
           : onCancel
@@ -133,10 +132,11 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
       <Dialog
         title={intl.formatMessage(globalMessages.walletSendConfirmationDialogTitle)}
         actions={actions}
-        closeOnOverlayClick
+        closeOnOverlayClick={false}
         onClose={!isSubmitting ? onCancel : null}
         className={styles.dialog}
         closeButton={<DialogCloseButton />}
+        classicTheme={classicTheme}
       >
         <div className={styles.walletPasswordFields}>
           <div className={styles.addressToLabelWrapper}>
@@ -181,7 +181,7 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
               className={styles.walletPassword}
               {...walletPasswordField.bind()}
               error={walletPasswordField.error}
-              skin={InputSkin}
+              skin={classicTheme ? InputSkin : InputOwnSkin}
             />
           }
         </div>
@@ -191,5 +191,4 @@ export default class WalletSendConfirmationDialog extends Component<Props> {
       </Dialog>
     );
   }
-
 }

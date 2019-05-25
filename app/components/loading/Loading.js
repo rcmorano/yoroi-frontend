@@ -7,24 +7,22 @@ import classNames from 'classnames';
 import LoadingSpinner from '../widgets/LoadingSpinner';
 import yoroiLogo from '../../assets/images/yoroi-logo-shape-white.inline.svg';
 import styles from './Loading.scss';
-import type { ReactIntlMessage } from '../../types/i18nTypes';
+import type { MessageDescriptor } from 'react-intl';
 import environment from '../../environment';
 import LocalizableError from '../../i18n/LocalizableError';
-
-type State = {};
 
 type Props = {
   currencyIcon: string,
   apiIcon: string,
   isLoadingDataForNextScreen: boolean,
-  loadingDataForNextScreenMessage: ReactIntlMessage,
+  loadingDataForNextScreenMessage: MessageDescriptor,
   hasLoadedCurrentLocale: boolean,
   hasLoadedCurrentTheme: boolean,
   error: ?LocalizableError
 };
 
 @observer
-export default class Loading extends Component<Props, State> {
+export default class Loading extends Component<Props> {
 
   static contextTypes = {
     intl: intlShape.isRequired,
@@ -63,9 +61,9 @@ export default class Loading extends Component<Props, State> {
     return (
       <div className={componentStyles}>
         <div className={styles.logos}>
-          <SvgInline svg={currencyLoadingLogo} className={currencyLogoStyles} cleanup={['title']} />
-          <SvgInline svg={yoroiLoadingLogo} className={yoroiLogoStyles} cleanup={['title']} />
-          <SvgInline svg={apiLoadingLogo} className={apiLogoStyles} cleanup={['title']} />
+          <SvgInline svg={currencyLoadingLogo} className={currencyLogoStyles} />
+          <SvgInline svg={yoroiLoadingLogo} className={yoroiLogoStyles} />
+          <SvgInline svg={apiLoadingLogo} className={apiLogoStyles} />
         </div>
         {hasLoadedCurrentLocale && (
           <div>
