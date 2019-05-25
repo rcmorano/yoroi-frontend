@@ -140,7 +140,8 @@ _chrome_webstore_deploy:
         echo "RELEASE_TAG: ${RELEASE_TAG}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
-        rm -rf build;
+        CRX_NAME="yoroi-${RELEASE_TAG}.crx";
+        rm -rf build; rm -rf artifacts/*;
         npm run build -- --env "staging";
         sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
         find build -type f -exec md5sum {} \; | tee -a build/md5.list
@@ -157,12 +158,19 @@ _chrome_webstore_deploy:
           -v \
           ${CHROME_WEBSTORE_API_ENDPOINT} | sed 's|.*"id":"\(.*\)","upload.*|\1|g');
         webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+        curl -o artifacts/${CRX_NAME} \
+          -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+          -H "x-goog-api-version: 2" \
+          -X GET \
+          -v \
+          ${CHROME_WEBSTORE_API_ENDPOINT}/items/${APP_ID};
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
         echo "RELEASE_TAG: ${RELEASE_TAG}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
-        rm -rf build;
+        CRX_NAME="yoroi-${RELEASE_TAG}.crx";
+        rm -rf build; rm -rf artifacts/*;
         if [ "${TRAVIS_BRANCH}" == "develop" ];
         then
           npm run build -- --env "staging";
@@ -174,6 +182,12 @@ _chrome_webstore_deploy:
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
           webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+          curl -o artifacts/${CRX_NAME} \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+            -H "x-goog-api-version: 2" \
+            -X GET \
+            -v \
+            ${CHROME_WEBSTORE_API_ENDPOINT}/items/${CHROME_DEV_APP_ID};
         fi;
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
@@ -186,6 +200,12 @@ _chrome_webstore_deploy:
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
           webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+          curl -o artifacts/${CRX_NAME} \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+            -H "x-goog-api-version: 2" \
+            -X GET \
+            -v \
+            ${CHROME_WEBSTORE_API_ENDPOINT}/items/${CHROME_STG_APP_ID};
         fi;
         if [ "${TRAVIS_BRANCH}" == "master" ];
         then
@@ -198,6 +218,12 @@ _chrome_webstore_deploy:
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
           webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+          curl -o artifacts/${CRX_NAME} \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+            -H "x-goog-api-version: 2" \
+            -X GET \
+            -v \
+            ${CHROME_WEBSTORE_API_ENDPOINT}/items/${CHROME_PRO_APP_ID};
         fi;
       fi;
       tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
