@@ -28,9 +28,8 @@ env:
     - GITHUB_USERNAME=rnd-at-emurgo
     - GITHUB_EMAIL=rnd@emurgo.io
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
-    - CHROME_CODEBASE=https://www.sample.com/dw/yoroi-extension.crx
+    - CHROME_CODEBASE_URL=https://www.sample.com/dw/yoroi-extension.crx
     - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1/items
-    - CARDANO_NETWORK=mainnet
     - DISPLAY=:0
 
 # lets say these are pre-depends
@@ -143,7 +142,7 @@ _chrome_webstore_deploy:
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         npm run build -- --env "staging";
         sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-        npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE}";
+        npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE_URL}";
         ls -hl . build;  
         mv Yoroi*zip artifacts/${ZIP_NAME};
         mv Yoroi*xpi artifacts/${XPI_NAME};
@@ -164,7 +163,7 @@ _chrome_webstore_deploy:
         then
           npm run build -- --env "staging";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE}";
+          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
@@ -174,7 +173,7 @@ _chrome_webstore_deploy:
         then
           npm run build -- --env "staging";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE}";
+          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
@@ -185,7 +184,7 @@ _chrome_webstore_deploy:
           npm run build -- --env "mainnet";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           ls -hl . build;
-          npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE}";
+          npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
           webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
@@ -211,58 +210,58 @@ matrix:
   fast_finish: true
   include:
 
-#    # stage: build-yoroi
-#    # 3x env in order to satisfy (build|artifacts) cache for e2e-tests
-#    - stage: build-yoroi
-#      #if: branch = master
-#      name: "build Yoroi extension"
-#      env:
-#        - BROWSER=chrome
-#        - BROWSER=firefox
-#        - BROWSER=brave
-#      script: *_build_yoroi_script
-#
-#
-#    # stage: code-qa
-#    - stage: code-qa
-#      name: "flow checks"
-#      script: npm run flow
-#    - stage: code-qa
-#      name: "eslint checks"
-#      script: npm run eslint
-#    - stage: code-qa
-#      name: "jest checks"
-#      script: npm run jest
-#
-#    # stage: e2e-tests
-#    # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last env var prevails.
-#    - stage: e2e-tests
-#      name: "Brave End-to-End tests"
-#      if: branch = master
-#      env: 
-#        - BROWSER=chrome
-#        - BROWSER=firefox
-#        - BROWSER=brave
-#      install: *_e2e_tests_install
-#      script: *_e2e_tests_script
-#    - stage: e2e-tests
-#      if: branch =~ ^develop|staging|master OR type = pull_request
-#      name: "Chrome End-to-End tests"
-#      env:
-#        - BROWSER=firefox
-#        - BROWSER=brave
-#        - BROWSER=chrome
-#      install: *_e2e_tests_install
-#      script: *_e2e_tests_script
-#    - stage: e2e-tests
-#      if: branch =~ ^develop|staging|master OR type = pull_request
-#      name: "Firefox End-to-End tests"
-#      env:
-#        - BROWSER=brave
-#        - BROWSER=chrome
-#        - BROWSER=firefox
-#      install: *_e2e_tests_install
-#      script: *_e2e_tests_script
+    # stage: build-yoroi
+    # 3x env in order to satisfy (build|artifacts) cache for e2e-tests
+    - stage: build-yoroi
+      #if: branch = master
+      name: "build Yoroi extension"
+      env:
+        - BROWSER=chrome
+        - BROWSER=firefox
+        - BROWSER=brave
+      script: *_build_yoroi_script
+
+
+    # stage: code-qa
+    - stage: code-qa
+      name: "flow checks"
+      script: npm run flow
+    - stage: code-qa
+      name: "eslint checks"
+      script: npm run eslint
+    - stage: code-qa
+      name: "jest checks"
+      script: npm run jest
+
+    # stage: e2e-tests
+    # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last env var prevails.
+    - stage: e2e-tests
+      name: "Brave End-to-End tests"
+      if: branch = master
+      env: 
+        - BROWSER=chrome
+        - BROWSER=firefox
+        - BROWSER=brave
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
+    - stage: e2e-tests
+      if: branch =~ ^develop|staging|master OR type = pull_request
+      name: "Chrome End-to-End tests"
+      env:
+        - BROWSER=firefox
+        - BROWSER=brave
+        - BROWSER=chrome
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
+    - stage: e2e-tests
+      if: branch =~ ^develop|staging|master OR type = pull_request
+      name: "Firefox End-to-End tests"
+      env:
+        - BROWSER=brave
+        - BROWSER=chrome
+        - BROWSER=firefox
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
 
     - stage: artifacts-deploy
       script: *_chrome_webstore_deploy
