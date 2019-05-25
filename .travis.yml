@@ -144,8 +144,8 @@ _chrome_webstore_deploy:
         rm -rf build; rm -rf artifacts/*;
         npm run build -- --env "staging";
         sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-        find build -type f -exec md5sum {} \; | sed 's| build/||' | tee -a md5.list
-        mv md5.list build/;
+        find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
+        mv sha256sum.list build/;
         npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE_URL}";
         ls -hl . build;  
         mv Yoroi*zip artifacts/${ZIP_NAME};
@@ -176,8 +176,8 @@ _chrome_webstore_deploy:
         then
           npm run build -- --env "staging";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          find build -type f -exec md5sum {} \; | sed 's| build/||' | tee -a md5.list
-          mv md5.list build/;
+          find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
+          mv sha256sum.list build/;
           npm run compress -- --env "staging" --zip-only --app-id ${CHROME_DEV_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
@@ -193,8 +193,8 @@ _chrome_webstore_deploy:
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
           npm run build -- --env "staging";
-          find build -type f -exec md5sum {} \; | sed 's| build/||' | tee -a md5.list
-          mv md5.list build/;
+          find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
+          mv sha256sum.list build/;
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           npm run compress -- --env "staging" --zip-only --app-id ${CHROME_STG_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           ls -hl . build;
@@ -211,8 +211,8 @@ _chrome_webstore_deploy:
         if [ "${TRAVIS_BRANCH}" == "master" ];
         then
           npm run build -- --env "mainnet";
-          find build -type f -exec md5sum {} \; | sed 's| build/||' | tee -a md5.list
-          mv md5.list build/;
+          find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
+          mv sha256sum.list build/;
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           ls -hl . build;
           npm run compress -- --env "mainnet" --zip-only --app-id ${CHROME_PRO_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
@@ -228,9 +228,12 @@ _chrome_webstore_deploy:
         fi;
       fi;
       tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
-      echo "Chrome CRX md5: $(md5sum artifacts/${CRX_NAME})";
-      echo "Chrome ZIP md5: $(md5sum artifacts/${ZIP_NAME})";
-      echo "Firefox XPI md5: $(md5sum artifacts/${XPI_NAME})";
+      echo "Release sha256 checksums:";
+      find build -type f -exec sha256sum {} \; | tee -a artifacts/sha256sum.list
+      sha256sum build*tar.gz | tee -a artifacts/sha256sum.list
+      sha256sum artifacts/${CRX_NAME} | tee -a artifacts/sha256sum.list
+      sha256sum artifacts/${XPI_NAME} | tee -a artifacts/sha256sum.list
+      sha256sum artifacts/${ZIP_NAME} | tee -a artifacts/sha256sum.list
 
 #_github_releases_deploy:
 #  script: &_github_releases_deploy
@@ -332,12 +335,13 @@ deploy:
       - artifacts/yoroi*xpi
       - artifacts/yoroi*crx
       - artifacts/build*.tar.gz
+      - artifacts/sha256sum.list
     overwrite: true
     skip_cleanup: true
     draft: true
     on:
       all_branches: true
-      condition: $TRAVIS_BRANCH =~ staging|master AND $TRAVIS_BUILD_STAGE_NAME = E2e-tests
+      condition: ( $TRAVIS_BRANCH =~ staging|master ) AND ( $TRAVIS_BUILD_STAGE_NAME = E2e-tests )
 
 notifications:
   slack:
