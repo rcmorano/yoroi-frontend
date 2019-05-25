@@ -154,7 +154,7 @@ _chrome_webstore_deploy:
           -T artifacts/${ZIP_NAME} \
           -v \
           ${CHROME_WEBSTORE_API_ENDPOINT} | sed 's|.*"id":"\(.*\)","upload.*|\1|g');
-        webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+        webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
@@ -167,7 +167,7 @@ _chrome_webstore_deploy:
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
@@ -176,7 +176,7 @@ _chrome_webstore_deploy:
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
         if [ "${TRAVIS_BRANCH}" == "master" ];
         then
