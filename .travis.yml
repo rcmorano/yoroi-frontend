@@ -142,6 +142,7 @@ _chrome_webstore_deploy:
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         npm run build -- --env "staging";
+        sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
         npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE}";
         ls -hl . build;  
         mv Yoroi*zip artifacts/${ZIP_NAME};
@@ -159,10 +160,10 @@ _chrome_webstore_deploy:
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
-        sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
         if [ "${TRAVIS_BRANCH}" == "develop" ];
         then
           npm run build -- --env "staging";
+          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
@@ -172,6 +173,7 @@ _chrome_webstore_deploy:
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
           npm run build -- --env "staging";
+          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
@@ -181,7 +183,7 @@ _chrome_webstore_deploy:
         if [ "${TRAVIS_BRANCH}" == "master" ];
         then
           npm run build -- --env "mainnet";
-          sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
+          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           ls -hl . build;
           npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE}";
           mv Yoroi*zip artifacts/${ZIP_NAME};
