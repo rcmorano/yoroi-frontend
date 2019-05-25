@@ -139,6 +139,8 @@ _chrome_webstore_deploy:
       if [ ! -z "${TRAVIS_PULL_REQUEST}" ];
       then
         RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
+        ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
+        XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         npm run build -- --env "staging";
         npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE}";
         ls -hl . build;  
