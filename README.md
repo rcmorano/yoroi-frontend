@@ -1,5 +1,8 @@
 # Yoroi - Cardano ADA wallet
 
+Build status for mainnet:[![Build Status](https://travis-ci.com/rcmorano/yoroi-frontend.svg?branch=master)
+Build status for testnet:[![Build Status](https://travis-ci.com/rcmorano/yoroi-frontend.svg?branch=staging)
+
 ## Contributing
 
 Check out our [documents](docs/specs/meta) on the governance of this project.
@@ -79,29 +82,6 @@ We use Jest for unittests.
 
 ```bash
 $ npm run jest
-```
-
-## Update Cardano crypto library
-
-In order to update it run the following commands:
-
-```bash
-# Update js-cardano-wasm
-cd js-cardano-wasm;
-git checkout master;
-git pull origin master;
-cd ..;
-
-# Commit the update
-git add .
-git commit -S -m "${youCommitMessage}"
-git push ...
-
-# Re-install the module
-$ npm run build-js-cardano-wasm 
-$ npm install
-
-# At this point you can go back to Development steps. 
 ```
 
 ## LICENSE

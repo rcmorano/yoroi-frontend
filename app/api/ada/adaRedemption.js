@@ -1,36 +1,52 @@
 // @flow
 
 import { getAddressFromRedemptionKey, getRedemptionSignedTransaction } from './lib/cardanoCrypto/cryptoRedemption';
+import { SeedWithInvalidLengthError } from './lib/cardanoCrypto/cryptoErrors';
 import bs58 from 'bs58';
-import { getUTXOsForAddresses, sendTx } from './lib/yoroi-backend-api';
 import { decryptRegularVend } from './lib/decrypt';
 import { getReceiverAddress } from './adaAddress';
 import { RedemptionKeyAlreadyUsedError } from './errors';
 import BigNumber from 'bignumber.js';
+import type { AddressUtxoFunc, SendFunc } from './lib/state-fetch/types';
+
+import { RustModule } from './lib/cardanoCrypto/rustLoader';
 
 export type RedeemAdaParams = {
-  redemptionCode: string
+  redemptionCode: string,
+  getUTXOsForAddresses: AddressUtxoFunc,
+  sendTx: SendFunc,
 };
 
 export type RedeemPaperVendedAdaParams = {
   redemptionCode: string,
   mnemonics: Array<string>,
+  getUTXOsForAddresses: AddressUtxoFunc,
+  sendTx: SendFunc,
 };
 
 async function createAndSendTx(
-  redemptionKey: Buffer
+  keyBytes: Buffer,
+  getUTXOsForAddresses: AddressUtxoFunc,
+  sendTx: SendFunc,
 ) : Promise<BigNumber> {
-  const uint8ArrayAddress = getAddressFromRedemptionKey(redemptionKey);
-  const senderAddress = bs58.encode(Buffer.from(uint8ArrayAddress));
-  const utxos = await getUTXOsForAddresses({ addresses: [senderAddress] });
+  let redeemKey;
+  try {
+    redeemKey = RustModule.Wallet.PrivateRedeemKey.from_bytes(keyBytes);
+  } catch (err) {
+    throw new SeedWithInvalidLengthError();
+  }
+  const address = getAddressFromRedemptionKey(redeemKey);
+  const utxos = await getUTXOsForAddresses({ addresses: [address.to_base58()] });
   if (utxos.length === 0) {
     throw new RedemptionKeyAlreadyUsedError();
   }
   const receiverAddress = await getReceiverAddress();
-  const redemptionSignedTransaction: RedeemResponse =
-    getRedemptionSignedTransaction(redemptionKey, receiverAddress, utxos[0]);
-  const cborEncodedTx = redemptionSignedTransaction.result.cbor_encoded_tx;
-  const signedTx = Buffer.from(cborEncodedTx).toString('base64');
+
+  const signedTx = getRedemptionSignedTransaction(
+    redeemKey,
+    receiverAddress,
+    utxos[0]  // note: redemptions should only ever have a single UTXO
+  );
   await sendTx({ signedTx });
   return new BigNumber(utxos[0].amount);
 }
@@ -40,7 +56,11 @@ export async function redeemAda(
 ) : Promise<BigNumber> {
   const redemptionKey = Buffer.from(redemptionParams.redemptionCode, 'base64');
 
-  return createAndSendTx(redemptionKey);
+  return createAndSendTx(
+    redemptionKey,
+    redemptionParams.getUTXOsForAddresses,
+    redemptionParams.sendTx,
+  );
 }
 
 export async function redeemPaperVendedAda(
@@ -51,5 +71,9 @@ export async function redeemPaperVendedAda(
   const seed = decryptRegularVend(mnemonicAsString, redemptionCodeBuffer);
   const redemptionKey = Buffer.from(seed, 'base64');
 
-  return createAndSendTx(redemptionKey);
+  return createAndSendTx(
+    redemptionKey,
+    redemptionParams.getUTXOsForAddresses,
+    redemptionParams.sendTx,
+  );
 }
