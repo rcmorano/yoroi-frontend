@@ -10,9 +10,9 @@ cache:
   directories:
     - ~/.npm # cache npm's cache
     - ~/.cargo # cache cargo's cache
-    # cache built test-artifacts from install phase to speedup e2e
+    # cache built artifacts from install phase to speedup e2e
     - build 
-    - test-artifacts
+    - artifacts
  
 env:
   global:
@@ -116,8 +116,8 @@ _e2e_tests:
     - >
       set -xeo pipefail;
       ls -hl build;
-      cp -a test-artifacts/*crx .;
-      cp -a test-artifacts/*xpi .;
+      cp -a artifacts/*crx .;
+      cp -a artifacts/*xpi .;
       npm run test-e2e-${BROWSER};
 
 _build_yoroi_script:
@@ -127,7 +127,7 @@ _build_yoroi_script:
       if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
       then
         npm run test-prepare;
-        mv *crx *xpi test-artifacts/;
+        mv *crx *xpi artifacts/;
         touch build/${GIT_SHORT_COMMIT}.built;
       fi;
 
@@ -139,57 +139,55 @@ _chrome_webstore_deploy:
       if [ ! -z "${TRAVIS_PULL_REQUEST}" ];
       then
         RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
+        npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE}";
+        mv Yoroi*zip artifacts/${ZIP_NAME};
+        mv Yoroi*xpi artifacts/${XPI_NAME};
+        ACCESS_TOKEN=$(curl -s -X POST -d "client_id=$GOOGLE_CLIENT_ID&client_secret=$GOOGLE_CLIENT_SECRET&refresh_token=$GOOGLE_REFRESH_TOKEN&grant_type=refresh_token" https://www.googleapis.com/oauth2/v4/token | grep access_token | awk -F: '{print $2}' | sed 's|.*"\(.*\)".*|\1|g');
+        APP_ID=$(curl  \
+          -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+          -H "x-goog-api-version: 2" \
+          -X POST \
+          -T artifacts/${ZIP_NAME} \
+          -v \
+          ${CHROME_WEBSTORE_API_ENDPOINT} | sed 's|.*"id":"\(.*\)","upload.*|\1|g');
+        webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
-      fi;
-      ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
-      XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
-      if `echo "$TRAVIS_BRANCH" | grep -q "^fix\|feature\|develop\|staging"`;
-      then
-        npm run build -- --env "staging";
+        ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
+        XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-        ls -hl . build;
         if [ "${TRAVIS_BRANCH}" == "develop" ];
         then
+          npm run build -- --env "staging";
           npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE}";
-          mv Yoroi*zip test-artifacts/${ZIP_NAME};
-          mv Yoroi*xpi test-artifacts/${XPI_NAME};
-          webstore upload --source "test-artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          ls -hl . build;
+          mv Yoroi*zip artifacts/${ZIP_NAME};
+          mv Yoroi*xpi artifacts/${XPI_NAME};
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
         fi;
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
+          npm run build -- --env "staging";
           npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE}";
-          mv Yoroi*zip test-artifacts/${ZIP_NAME};
-          mv Yoroi*xpi test-artifacts/${XPI_NAME};
-          webstore upload --source "test-artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
-        else
-          npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE}";
-          mv Yoroi*zip test-artifacts/${ZIP_NAME};
-          mv Yoroi*xpi test-artifacts/${XPI_NAME};
-          ACCESS_TOKEN=$(curl -s -X POST -d "client_id=$GOOGLE_CLIENT_ID&client_secret=$GOOGLE_CLIENT_SECRET&refresh_token=$GOOGLE_REFRESH_TOKEN&grant_type=refresh_token" https://www.googleapis.com/oauth2/v4/token | grep access_token | awk -F: '{print $2}' | sed 's|.*"\(.*\)".*|\1|g');
-          APP_ID=$(curl  \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
-            -H "x-goog-api-version: 2" \
-            -X POST \
-            -T test-artifacts/${ZIP_NAME} \
-            -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT} | sed 's|.*"id":"\(.*\)","upload.*|\1|g');
-          webstore upload --source "test-artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+          ls -hl . build;
+          mv Yoroi*zip artifacts/${ZIP_NAME};
+          mv Yoroi*xpi artifacts/${XPI_NAME};
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --auto-publish --trusted-testers;
+        fi;
+        if [ "${TRAVIS_BRANCH}" == "master" ];
+        then
+          npm run build -- --env "mainnet";
+          sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
+          ls -hl . build;
+          npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE}";
+          mv Yoroi*zip artifacts/${ZIP_NAME};
+          mv Yoroi*xpi artifacts/${XPI_NAME};
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
       fi;
-      if [ "${TRAVIS_BRANCH}" == "master" ];
-      then
-        npm run build -- --env "mainnet";
-        sed -i "s|\"name\":\".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-        ls -hl . build;
-        npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE}";
-        mv Yoroi*zip test-artifacts/${ZIP_NAME};
-        mv Yoroi*xpi test-artifacts/${XPI_NAME};
-        webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
-      fi;
-      tar -zcf test-artifacts/build-${RELEASE_TAG}.tar.gz build;
-      echo "Chrome ZIP md5: $(md5sum test-artifacts/${ZIP_NAME})";
-      echo "Firefox XPI md5: $(md5sum test-artifacts/${XPI_NAME})";
+      tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
+      echo "Chrome ZIP md5: $(md5sum artifacts/${ZIP_NAME})";
+      echo "Firefox XPI md5: $(md5sum artifacts/${XPI_NAME})";
 
 #_github_releases_deploy:
 #  script: &_github_releases_deploy
@@ -287,9 +285,9 @@ deploy:
       secure: j8A5oEK6c/jiD/AcwNbFaRJ6vXiNOGrqGDPfgQ2g5RDcTmSu5PA4SgHN2hTYjqSYt78zdBmOtfNY77rN9jy5R2iqGbqByT5Dd1fjO9CS9tIcKj/8+J8vMOK/scCimp2mVYxg84VXanPYctvMB/3AFi2bZNyNP85uXOAuxTFQ7h8KdCiJJC9JQkusSqTq82CmIqrzOZZ2TmqUhMS2skS9ZaRhUPW5jgutVFp38PQnqTeF40+jsKYhMgviuS/aBQF51TZbmNuLfUad0nNnKuWUiZDAvShdSgHZE8SAXaKvME5MR/BpeOQMHnE5ZCOxbiwjIi/QHgU0w+DSamNpEL1o3pm+sf7cexMIk0b18o1pBT8xCgFvVMRuIeN1Jy5JvXACP87k32P+J9HP9165cpdXORynqvwwpiuOPCXyxktGuZObR31Awq+MxNYrz5boTFcbA/eRxQKCEt4s2odzVmd/iRxaTJdO+Zs+DI2kw4TiFPZtYH66v6xitrTSHWBWsd2fEGlYXfGVDl2nhi6y+T09dJ0UEd/nS4UJvdfa8c7AeYUzw4EDOyawArTEIZsRrmq4Bspl61LcUZK/VJdxO3ZX0PyxbiZDXuH1ivmfB7jT2Ibl74Ui+LEk4yoBdVGliulwMMwDlYXxgCO/tqeIF/Q1r4oY9aT3tuoV+j9WwQ4brZ8=
     file_glob: true
     file:
-      - test-artifacts/yoroi*zip
-      - test-artifacts/yoroi*xpi
-      - test-artifacts/build*.tar.gz
+      - artifacts/yoroi*zip
+      - artifacts/yoroi*xpi
+      - artifacts/build*.tar.gz
     overwrite: true
     skip_cleanup: true
     draft: true
