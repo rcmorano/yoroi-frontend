@@ -163,7 +163,7 @@ _chrome_webstore_deploy:
           -H "x-goog-api-version: 2" \
           -X GET \
           -v \
-          ${CHROME_WEBSTORE_API_ENDPOINT}/items/${APP_ID};
+          ${CHROME_WEBSTORE_API_ENDPOINT}/${APP_ID};
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
         echo "RELEASE_TAG: ${RELEASE_TAG}";
@@ -187,7 +187,7 @@ _chrome_webstore_deploy:
             -H "x-goog-api-version: 2" \
             -X GET \
             -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT}/items/${CHROME_DEV_APP_ID};
+            ${CHROME_WEBSTORE_API_ENDPOINT}/${CHROME_DEV_APP_ID};
         fi;
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
@@ -205,7 +205,7 @@ _chrome_webstore_deploy:
             -H "x-goog-api-version: 2" \
             -X GET \
             -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT}/items/${CHROME_STG_APP_ID};
+            ${CHROME_WEBSTORE_API_ENDPOINT}/${CHROME_STG_APP_ID};
         fi;
         if [ "${TRAVIS_BRANCH}" == "master" ];
         then
@@ -223,7 +223,7 @@ _chrome_webstore_deploy:
             -H "x-goog-api-version: 2" \
             -X GET \
             -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT}/items/${CHROME_PRO_APP_ID};
+            ${CHROME_WEBSTORE_API_ENDPOINT}/${CHROME_PRO_APP_ID};
         fi;
       fi;
       tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
