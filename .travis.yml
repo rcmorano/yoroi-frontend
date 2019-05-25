@@ -30,6 +30,9 @@ env:
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
     - CHROME_CODEBASE_URL=https://www.sample.com/dw/yoroi-extension.crx
     - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1/items
+    - CHROME_DEV_APP_ID=febkioblpijdgicianpklkmolpbagnbo
+    - CHROME_STG_APP_ID=bbaanljemfingpglehbbpdlhhahliihe
+    - CHROME_PRO_APP_ID=fkkmcnnpaaimcaikbjgklcibgncdgejc
     - DISPLAY=:0
 
 # lets say these are pre-depends
@@ -54,8 +57,8 @@ install:
 _e2e_tests:
   # install brave, chrome or firefox
   install: &_e2e_tests_install
+    - set -eo pipefail;
     - >
-      set -eo pipefail;
       if [ "${BROWSER}" == "brave" ];
       then
         curl -sL https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
@@ -71,6 +74,7 @@ _e2e_tests:
         sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
         sudo chmod +x /usr/local/bin/chromedriver;
       fi;
+    - >
       if [ "${BROWSER}" == "chrome" ];
       then
         curl -sL https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -;
@@ -92,6 +96,7 @@ _e2e_tests:
         sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
         sudo chmod +x /usr/local/bin/chromedriver;
       fi;
+    - >
       if [ "${BROWSER}" == "firefox" ];
       then
         curl -o /tmp/firefox.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/firefox-${FIREFOX_VERSION}.tar.bz2;
@@ -101,6 +106,7 @@ _e2e_tests:
         sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
         which firefox;
       fi;
+    - >
       npm install;
       sudo apt-get install -qqy openssh-server;
       sudo service ssh start;
@@ -136,9 +142,11 @@ _chrome_webstore_deploy:
     - >
       set -eo pipefail;
       npm install -g chrome-webstore-upload-cli;
+    - >
       if [ "${TRAVIS_PULL_REQUEST}" != "false" ];
       then
         RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
+        echo "RELEASE_TAG: ${RELEASE_TAG}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         npm run build -- --env "staging";
@@ -158,37 +166,38 @@ _chrome_webstore_deploy:
         webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
       else
         RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
+        echo "RELEASE_TAG: ${RELEASE_TAG}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         if [ "${TRAVIS_BRANCH}" == "develop" ];
         then
           npm run build -- --env "staging";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
+          npm run compress -- --env "staging" --zip-only --app-id ${CHROME_DEV_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
         if [ "${TRAVIS_BRANCH}" == "staging" ];
         then
           npm run build -- --env "staging";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
+          npm run compress -- --env "staging" --zip-only --app-id ${CHROME_STG_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           ls -hl . build;
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
         if [ "${TRAVIS_BRANCH}" == "master" ];
         then
           npm run build -- --env "mainnet";
           sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
           ls -hl . build;
-          npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
+          npm run compress -- --env "mainnet" --zip-only --app-id ${CHROME_PRO_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
           mv Yoroi*zip artifacts/${ZIP_NAME};
           mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
         fi;
       fi;
       tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
