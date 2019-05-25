@@ -1,0 +1,311 @@
+#language: bash
+sudo: true
+dist: xenial
+language: node_js
+node_js: '10'
+services:
+  - docker
+
+cache:
+  directories:
+    - ~/.npm # cache npm's cache
+    - ~/.cargo # cache cargo's cache
+    # cache built artifacts from install phase to speedup e2e
+    - build 
+    - artifacts
+ 
+env:
+  global:
+    # runtime versions
+    - RUST_VERSION=1.32.0
+    # browser versions
+    - FIREFOX_VERSION=67.0b9
+    - CHROME_VERSION=google-chrome-stable
+    - BRAVE_CHROMEDRIVER_VERSION=2.33
+    # Xorg config
+    - SCREEN_RESOLUTION=1280x1024x24
+    # misc
+    - GITHUB_USERNAME=rnd-at-emurgo
+    - GITHUB_EMAIL=rnd@emurgo.io
+    - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
+    - CHROME_CODEBASE_URL=https://www.sample.com/dw/yoroi-extension.crx
+    - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1/items
+    - DISPLAY=:0
+
+# lets say these are pre-depends
+before_install:
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- ${DISPLAY} -ac -screen 0 ${SCREEN_RESOLUTION}"
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - >
+    if [ ! -e "$HOME/.cargo/bin" ];
+    then
+      curl https://sh.rustup.rs -sSf | sh -s -- -y;
+      sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
+      PATH=$PATH:/usr/local/bin;
+      rustup install ${RUST_VERSION};
+      rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
+    fi;
+    sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
+    gem install dpl --no-ri --no-rdoc;
+
+install: 
+  - npm ci
+
+_e2e_tests:
+  # install brave, chrome or firefox
+  install: &_e2e_tests_install
+    - >
+      set -xeo pipefail;
+      if [ "${BROWSER}" == "brave" ];
+      then
+        curl -sL https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
+        source /etc/lsb-release;
+        echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/brave-browser-release-${UBUNTU_CODENAME}.list;
+        sudo apt-get update -qqy;
+        sudo apt-get install -qqy brave-keyring brave-browser;
+        BRAVE_VERSION=$(apt-cache policy brave-browser|grep -i installed | awk "{print \$NF}");
+        echo "Using chromedriver version: ${BRAVE_CHROMEDRIVER_VERSION}";
+        curl -o /tmp/chromedriver_linux64.zip -sL https://github.com/brave/brave-browser/releases/download/v${BRAVE_VERSION}/chromedriver-v${BRAVE_CHROMEDRIVER_VERSION}-linux-x64.zip;
+        unzip /tmp/chromedriver_linux64.zip -d /tmp;
+        rm -rf chromedriver_linux64.zip;
+        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
+        sudo chmod +x /usr/local/bin/chromedriver;
+      fi;
+      if [ "${BROWSER}" == "chrome" ];
+      then
+        curl -sL https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -;
+        echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list;
+        sudo apt-get update -qqy;
+        sudo apt-get install -qqy ${CHROME_VERSION:-google-chrome-stable};
+        CHROME_STRING=$(google-chrome --version);
+        CHROME_VERSION_STRING=$(echo "${CHROME_STRING}" | grep -oP "\d+\.\d+\.\d+\.\d+");
+        CHROME_MAYOR_VERSION=$(echo "${CHROME_VERSION_STRING%%.*}");
+        CD_VERSION=$(curl -sL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAYOR_VERSION}");
+        if [ -z "$CHROME_DRIVER_VERSION" ]; \
+        then
+          CHROME_DRIVER_VERSION="${CD_VERSION}";
+        fi;
+        echo "Using chromedriver version: $CD_VERSION";
+        curl -o /tmp/chromedriver_linux64.zip -sL https://chromedriver.storage.googleapis.com/$CD_VERSION/chromedriver_linux64.zip;
+        unzip /tmp/chromedriver_linux64.zip -d /tmp;
+        rm -rf chromedriver_linux64.zip;
+        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
+        sudo chmod +x /usr/local/bin/chromedriver;
+      fi;
+      if [ "${BROWSER}" == "firefox" ];
+      then
+        curl -o /tmp/firefox.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/firefox-${FIREFOX_VERSION}.tar.bz2;
+        sudo rm -f /opt/firefox/firefox;
+        sudo tar -C /opt -jxf /tmp/firefox.bz2;
+        sudo rm -f /usr/local/bin/firefox;
+        sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
+        which firefox;
+      fi;
+      npm install;
+      sudo apt-get install -qqy openssh-server;
+      sudo service ssh start;
+      SSH_RAND_PORT=$(shuf -n1 -i 1025-65000);
+      echo "SSH random port: $SSH_RAND_PORT";
+      chmod 600 .travis/travis;
+      mkdir -p ~/.ssh;
+      cp .travis/travis.pub ~/.ssh/authorized_keys;
+      ssh -i .travis/travis -R ${SSH_RAND_PORT}:0.0.0.0:22 -f -N -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rcmorano@none.guru;
+
+      
+  script: &_e2e_tests_script
+    - >
+      set -xeo pipefail;
+      ls -hl build;
+      cp -a artifacts/*crx .;
+      cp -a artifacts/*xpi .;
+      npm run test-e2e-${BROWSER};
+
+_build_yoroi_script:
+  script: &_build_yoroi_script
+    - >
+      set -xeo pipefail;
+      if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
+      then
+        npm run test-prepare;
+        mv *crx *xpi artifacts/;
+        touch build/${GIT_SHORT_COMMIT}.built;
+      fi;
+
+_chrome_webstore_deploy:
+  script: &_chrome_webstore_deploy
+    - >
+      set -xeo pipefail;
+      npm install -g chrome-webstore-upload-cli;
+      if [ ! -z "${TRAVIS_PULL_REQUEST}" ];
+      then
+        RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
+        ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
+        XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
+        npm run build -- --env "staging";
+        sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
+        npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE_URL}";
+        ls -hl . build;  
+        mv Yoroi*zip artifacts/${ZIP_NAME};
+        mv Yoroi*xpi artifacts/${XPI_NAME};
+        ACCESS_TOKEN=$(curl -s -X POST -d "client_id=$GOOGLE_CLIENT_ID&client_secret=$GOOGLE_CLIENT_SECRET&refresh_token=$GOOGLE_REFRESH_TOKEN&grant_type=refresh_token" https://www.googleapis.com/oauth2/v4/token | grep access_token | awk -F: '{print $2}' | sed 's|.*"\(.*\)".*|\1|g');
+        APP_ID=$(curl  \
+          -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+          -H "x-goog-api-version: 2" \
+          -X POST \
+          -T artifacts/${ZIP_NAME} \
+          -v \
+          ${CHROME_WEBSTORE_API_ENDPOINT} | sed 's|.*"id":"\(.*\)","upload.*|\1|g');
+        webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+      else
+        RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
+        ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
+        XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
+        if [ "${TRAVIS_BRANCH}" == "develop" ];
+        then
+          npm run build -- --env "staging";
+          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
+          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_DEV_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
+          ls -hl . build;
+          mv Yoroi*zip artifacts/${ZIP_NAME};
+          mv Yoroi*xpi artifacts/${XPI_NAME};
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+        fi;
+        if [ "${TRAVIS_BRANCH}" == "staging" ];
+        then
+          npm run build -- --env "staging";
+          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
+          npm run compress -- --env "staging" --zip-only --app-id ${GOOGLE_STG_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
+          ls -hl . build;
+          mv Yoroi*zip artifacts/${ZIP_NAME};
+          mv Yoroi*xpi artifacts/${XPI_NAME};
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+        fi;
+        if [ "${TRAVIS_BRANCH}" == "master" ];
+        then
+          npm run build -- --env "mainnet";
+          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
+          ls -hl . build;
+          npm run compress -- --env "mainnet" --zip-only --app-id ${GOOGLE_PRO_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
+          mv Yoroi*zip artifacts/${ZIP_NAME};
+          mv Yoroi*xpi artifacts/${XPI_NAME};
+          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${GOOGLE_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
+        fi;
+      fi;
+      tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
+      echo "Chrome ZIP md5: $(md5sum artifacts/${ZIP_NAME})";
+      echo "Firefox XPI md5: $(md5sum artifacts/${XPI_NAME})";
+
+#_github_releases_deploy:
+#  script: &_github_releases_deploy
+#    ->
+#     dpl
+
+stages:
+  - code-qa
+  - build-yoroi
+  - e2e-tests
+  - deploy-artifacts
+#  - build-docker
+
+matrix:
+  fast_finish: true
+  include:
+
+    # stage: build-yoroi
+    # 3x env in order to satisfy (build|artifacts) cache for e2e-tests
+    - stage: build-yoroi
+      #if: branch = master
+      name: "build Yoroi extension"
+      env:
+        - BROWSER=chrome
+        - BROWSER=firefox
+        - BROWSER=brave
+      script: *_build_yoroi_script
+
+
+    # stage: code-qa
+    - stage: code-qa
+      name: "flow checks"
+      script: npm run flow
+    - stage: code-qa
+      name: "eslint checks"
+      script: npm run eslint
+    - stage: code-qa
+      name: "jest checks"
+      script: npm run jest
+
+    # stage: e2e-tests
+    # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last env var prevails.
+    - stage: e2e-tests
+      name: "Brave End-to-End tests"
+      if: branch = master
+      env: 
+        - BROWSER=chrome
+        - BROWSER=firefox
+        - BROWSER=brave
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
+    - stage: e2e-tests
+      if: branch =~ ^develop|staging|master OR type = pull_request
+      name: "Chrome End-to-End tests"
+      env:
+        - BROWSER=firefox
+        - BROWSER=brave
+        - BROWSER=chrome
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
+    - stage: e2e-tests
+      if: branch =~ ^develop|staging|master OR type = pull_request
+      name: "Firefox End-to-End tests"
+      env:
+        - BROWSER=brave
+        - BROWSER=chrome
+        - BROWSER=firefox
+      install: *_e2e_tests_install
+      script: *_e2e_tests_script
+
+    - stage: artifacts-deploy
+      script: *_chrome_webstore_deploy
+      if: branch =~ ^develop|staging|master OR type = pull_request
+      # env provides cache
+      env:
+        - BROWSER=brave
+        - BROWSER=chrome
+        - BROWSER=firefox
+
+    #- stage: build-docker
+    #  script: false
+
+  allow_failures:
+    - stage: build-docker
+
+#before_deploy:
+#  - git config --local user.name "${GITHUB_USERNAME}";
+#  - git config --local user.email "${GITHUB_EMAIL}";
+#  - export RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
+#  - git tag $RELEASE_TAG;
+
+deploy:
+  - provider: releases
+    api_key:
+      secure: j8A5oEK6c/jiD/AcwNbFaRJ6vXiNOGrqGDPfgQ2g5RDcTmSu5PA4SgHN2hTYjqSYt78zdBmOtfNY77rN9jy5R2iqGbqByT5Dd1fjO9CS9tIcKj/8+J8vMOK/scCimp2mVYxg84VXanPYctvMB/3AFi2bZNyNP85uXOAuxTFQ7h8KdCiJJC9JQkusSqTq82CmIqrzOZZ2TmqUhMS2skS9ZaRhUPW5jgutVFp38PQnqTeF40+jsKYhMgviuS/aBQF51TZbmNuLfUad0nNnKuWUiZDAvShdSgHZE8SAXaKvME5MR/BpeOQMHnE5ZCOxbiwjIi/QHgU0w+DSamNpEL1o3pm+sf7cexMIk0b18o1pBT8xCgFvVMRuIeN1Jy5JvXACP87k32P+J9HP9165cpdXORynqvwwpiuOPCXyxktGuZObR31Awq+MxNYrz5boTFcbA/eRxQKCEt4s2odzVmd/iRxaTJdO+Zs+DI2kw4TiFPZtYH66v6xitrTSHWBWsd2fEGlYXfGVDl2nhi6y+T09dJ0UEd/nS4UJvdfa8c7AeYUzw4EDOyawArTEIZsRrmq4Bspl61LcUZK/VJdxO3ZX0PyxbiZDXuH1ivmfB7jT2Ibl74Ui+LEk4yoBdVGliulwMMwDlYXxgCO/tqeIF/Q1r4oY9aT3tuoV+j9WwQ4brZ8=
+    file_glob: true
+    file:
+      - artifacts/yoroi*zip
+      - artifacts/yoroi*xpi
+      - artifacts/build*.tar.gz
+    overwrite: true
+    skip_cleanup: true
+    draft: true
+    on:
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ staging|master
+      condition: $TRAVIS_BUILD_STAGE_NAME = E2e-tests
+
+notifications:
+  slack:
+    on_success: always
+    on_failure: always
+    rooms:
+      # notify rcmorano
+      - secure: uLazaQzraN0KlITJo3LiZ+eNP8UPuoLrtk2m7KWQPaqx2pUlBwAQKh7aSVj+QfnXUa4nQ6Q4HPq2P6j08GhD4b5vGjs7bmPk8ro2mnX/ECfgqfuon1CpvvD856DRJB1NlzI0BTlZlTLZ24TfvYFBB4CF5rh+Fe0DESNqqpwbLwOzQMms21I8VM/oFxOx+d4Uu7/rthIk0juxjS1DPLm+Owk761+MzQRq0XQYpsZpvE2w7ESJzpMjp8qTFKbNwJXbiel0ITNRzhzGVVKTNCNPnnbFSy2Ol6/6aLetLOnMQI1S+VZhUifigvcA9Pov9V6BHYk9+mCrsK93XavTwxSYUNenIf2zmIxkHzz0+EV9DXCysFNyxNq8QqOfwfDLHsfnKd2OsbJ/T5XuciHdizK04Fbp4hUl7HewUn7ywm0p8d+27Ddlrbxy5fdTOu+2YvivOpN5le200Xyhoa8u7fP9AhiRDdPCfor8KCbDRDjmZXTPlJFB8FoSs7bAOUQRuTvZqkI7E0BYrXEbGBwL3WANEb0HFECxg22Nxgx5wV4/owyX+iKN2MXLjKQnSUYCUhbu1xPhztd6jScMoNY0yirKVVbn3z6uuOJs3sk+MM5BrPY1PLtDj8cMqYHAGjsgvSRLFsKkwRQsmulrSyJAVY9z8AVmv3CSf6X9LQVCJKjY8SY=

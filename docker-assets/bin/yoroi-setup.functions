@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function yoroi-depends-install() {
+
+  set -e
+  npm ci
+  
+}
+
+function yoroi-build() {
+
+  set -e
+  #npm run build-dll
+  npm run build -- --env ${CARDANO_NETWORK}
+  npm run compress -- --env "${CARDANO_NETWORK}" --zip-only --app-id "${APP_ID}" --codebase "${CODEBASE}"
+
+}

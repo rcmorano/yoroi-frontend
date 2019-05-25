@@ -13,6 +13,8 @@
 */
 
 import BigNumber from 'bignumber.js';
+import type { AdaAddressMap } from './adaAddress';
+import { RustModule } from './lib/cardanoCrypto/rustLoader';
 
 /*
  * This file gives the flow equivalents of the the Haskell types given in the wallet API at
@@ -120,16 +122,19 @@ export type AdaTransactionInputOutput = [
   AdaAmount,
 ];
 
-export type AdaTransactionFee = AdaAmount;
-
 export type AdaFeeEstimateResponse = {
-  fee: AdaTransactionFee,
-  changeAdaAddress: AdaAddress,
-  txExt: UnsignedTransactionExt
-}
+  fee: RustModule.Wallet.Coin,
+};
+
+export type UnsignedTxFromUtxoResponse = {
+  senderUtxos: Array<UTXO>,
+  txBuilder: RustModule.Wallet.TransactionBuilder,
+};
+export type UnsignedTxResponse = UnsignedTxFromUtxoResponse & {
+  addressesMap: AdaAddressMap,
+};
 
 export type AdaWallet = {
-  cwAccountsNumber: number,
   cwAmount: AdaAmount,
   cwId: string,
   cwMeta: AdaWalletMetaParams,
@@ -183,3 +188,5 @@ export type UTXO = {
 export type PDF = {
   getPage: Function
 }
+
+export type AddressType = "External" | "Internal";

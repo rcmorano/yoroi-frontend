@@ -1,0 +1,8 @@
+FROM alpine AS src
+RUN apk add --no-cache git
+
+ADD ./ /src
+WORKDIR /src
+
+RUN rm -rf /src/node_modules /src/dll && \
+    git checkout . && git reset --hard

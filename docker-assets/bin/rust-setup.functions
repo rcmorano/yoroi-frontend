@@ -1,0 +1,19 @@
+#!/bin/bash
+
+function rust-setup() {
+
+  # install rustup
+  curl https://sh.rustup.rs -sSf | sh -s -- -y
+  ln -s $HOME/.cargo/bin/* /usr/local/bin/
+
+  if [ "${RUST_VERSION}" == "nightly" ]
+  then
+    rustup toolchain install nightly
+    rustup update
+    rustup target add wasm32-unknown-unknown --toolchain nightly
+  else
+    rustup install ${RUST_VERSION} && \
+    rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
+  fi
+
+}

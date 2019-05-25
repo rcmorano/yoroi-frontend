@@ -5,7 +5,7 @@ import { observable, action } from 'mobx';
 
 import {
   LedgerBridge,
-  BIP44_HARDENED_CARDANO_FIRST_ACCOUNT_SUB_PATH as CARDANO_FIRST_ACCOUNT_SUB_PATH
+  makeCardanoAccountBIP44Path,
 } from 'yoroi-extension-ledger-bridge';
 import type {
   GetVersionResponse,
@@ -21,8 +21,8 @@ import LocalizedRequest from '../lib/LocalizedRequest';
 
 import type {
   CreateHardwareWalletRequest,
-  CreateHardwareWalletResponse,
-} from '../../api/common';
+  CreateHardwareWalletFunc,
+} from '../../api/ada';
 
 import {
   convertToLocalizableError
@@ -73,8 +73,8 @@ export default class LedgerConnectStore extends Store implements HWConnectStoreT
   // =================== VIEW RELATED =================== //
 
   // =================== API RELATED =================== //
-  createHWRequest: LocalizedRequest<CreateHardwareWalletResponse> =
-    new LocalizedRequest(this.api.ada.createHardwareWallet);
+  createHWRequest: LocalizedRequest<CreateHardwareWalletFunc>
+    = new LocalizedRequest<CreateHardwareWalletFunc>(this.api.ada.createHardwareWallet);
 
   /** While ledger wallet creation is taking place, we need to block users from starting a
     * ledger wallet creation on a seperate wallet and explain to them why the action is blocked */
@@ -159,13 +159,16 @@ export default class LedgerConnectStore extends Store implements HWConnectStoreT
         const versionResp: GetVersionResponse = await ledgerBridge.getVersion();
 
         Logger.debug(stringifyData(versionResp));
+
+        // TODO: assume single account in Yoroi
+        const accountPath = makeCardanoAccountBIP44Path(0);
         // https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#examples
-        Logger.debug(stringifyData(CARDANO_FIRST_ACCOUNT_SUB_PATH));
+        Logger.debug(stringifyData(accountPath));
 
         // get Cardano's first account's
         // i.e hdPath = [2147483692, 2147485463, 2147483648]
         const extendedPublicKeyResp: GetExtendedPublicKeyResponse
-          = await ledgerBridge.getExtendedPublicKey(CARDANO_FIRST_ACCOUNT_SUB_PATH);
+          = await ledgerBridge.getExtendedPublicKey(accountPath);
 
         this.hwDeviceInfo = this._normalizeHWResponse(versionResp, extendedPublicKeyResp);
 
@@ -253,8 +256,9 @@ export default class LedgerConnectStore extends Store implements HWConnectStoreT
       this.createHWRequest.reset();
 
       const reqParams = this._prepareCreateHWReqParams(walletName);
-      const ledgerWallet: CreateHardwareWalletResponse =
-        await this.createHWRequest.execute(reqParams).promise;
+      this.createHWRequest.execute(reqParams);
+      if (!this.createHWRequest.promise) throw new Error('should never happen');
+      const ledgerWallet = await this.createHWRequest.promise;
 
       await this._onSaveSucess(ledgerWallet);
     } catch (error) {
@@ -284,10 +288,12 @@ export default class LedgerConnectStore extends Store implements HWConnectStoreT
       throw new Error('Ledger device hardware info not valid');
     }
 
+    const stateFetcher = this.stores.substores[environment.API].stateFetchStore.fetcher;
     return {
       walletName,
       publicMasterKey: this.hwDeviceInfo.publicMasterKey,
-      hwFeatures: this.hwDeviceInfo.hwFeatures
+      hwFeatures: this.hwDeviceInfo.hwFeatures,
+      checkAddressesInUse: stateFetcher.checkAddressesInUse,
     };
   };
 
