@@ -41,7 +41,7 @@ before_install:
     then
       curl https://sh.rustup.rs -sSf | sh -s -- -y;
       sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
-      PATH=$PATH:/usr/local/bin;
+      source $HOME/.cargo/env;
       rustup install ${RUST_VERSION};
       rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
     fi;
@@ -55,7 +55,7 @@ _e2e_tests:
   # install brave, chrome or firefox
   install: &_e2e_tests_install
     - >
-      set -xeo pipefail;
+      set -eo pipefail;
       if [ "${BROWSER}" == "brave" ];
       then
         curl -sL https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
@@ -114,7 +114,7 @@ _e2e_tests:
       
   script: &_e2e_tests_script
     - >
-      set -xeo pipefail;
+      set -eo pipefail;
       ls -hl build;
       cp -a artifacts/*crx .;
       cp -a artifacts/*xpi .;
@@ -123,7 +123,7 @@ _e2e_tests:
 _build_yoroi_script:
   script: &_build_yoroi_script
     - >
-      set -xeo pipefail;
+      set -eo pipefail;
       if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
       then
         npm run test-prepare;
@@ -134,9 +134,9 @@ _build_yoroi_script:
 _chrome_webstore_deploy:
   script: &_chrome_webstore_deploy
     - >
-      set -xeo pipefail;
+      set -eo pipefail;
       npm install -g chrome-webstore-upload-cli;
-      if [ ! -z "${TRAVIS_PULL_REQUEST}" ];
+      if [ "${TRAVIS_PULL_REQUEST}" != "false" ];
       then
         RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
