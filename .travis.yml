@@ -134,6 +134,7 @@ _chrome_webstore_deploy:
       set -eo pipefail;
       npm install -g chrome-webstore-upload-cli;
     - >
+      rm -rf build; rm -rf artifacts/*;
       if [ "${TRAVIS_PULL_REQUEST}" != "false" ];
       then
         RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
@@ -141,7 +142,6 @@ _chrome_webstore_deploy:
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         CRX_NAME="yoroi-${RELEASE_TAG}.crx";
-        rm -rf build; rm -rf artifacts/*;
         npm run build -- --env "staging";
         sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
         find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
@@ -171,7 +171,6 @@ _chrome_webstore_deploy:
         ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
         XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
         CRX_NAME="yoroi-${RELEASE_TAG}.crx";
-        rm -rf build; rm -rf artifacts/*;
         if [ "${TRAVIS_BRANCH}" == "develop" ];
         then
           npm run build -- --env "staging";
@@ -251,18 +250,6 @@ matrix:
   fast_finish: true
   include:
 
-    # stage: build-yoroi
-    # 3x env in order to satisfy (build|artifacts) cache for e2e-tests
-    - stage: build-yoroi
-      #if: branch = master
-      name: "build Yoroi extension"
-      env:
-        - BROWSER=chrome
-        - BROWSER=firefox
-        - BROWSER=brave
-      script: *_build_yoroi_script
-
-
     # stage: code-qa
     - stage: code-qa
       name: "flow checks"
@@ -273,6 +260,17 @@ matrix:
     - stage: code-qa
       name: "jest checks"
       script: npm run jest
+
+    # stage: build-yoroi
+    # 3x env in order to satisfy (build|artifacts) cache for e2e-tests
+    - stage: build-yoroi
+      #if: branch = master
+      name: "build Yoroi extension"
+      env:
+        - BROWSER=chrome
+        - BROWSER=firefox
+        - BROWSER=brave
+      script: *_build_yoroi_script
 
     # stage: e2e-tests
     # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last env var prevails.
@@ -341,7 +339,7 @@ deploy:
     draft: true
     on:
       all_branches: true
-      condition: ( $TRAVIS_BRANCH =~ staging|master ) AND ( $TRAVIS_BUILD_STAGE_NAME = E2e-tests )
+      condition: ( $TRAVIS_BRANCH =~ staging|master ) && ( $TRAVIS_BUILD_STAGE_NAME = E2e-tests )
 
 notifications:
   slack:
