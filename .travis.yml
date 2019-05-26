@@ -9,7 +9,8 @@ services:
 cache:
   directories:
     - ~/.npm # cache npm's cache
-    - ~/.cargo # cache cargo's cache
+    - ~/.rustup 
+    - ~/.cargo
     # cache built artifacts from install phase to speedup e2e
     - build 
     - artifacts
@@ -18,6 +19,7 @@ env:
   global:
     # runtime versions
     - RUST_VERSION=1.32.0
+    - RUST_TARGETS=wasm32-unknown-unknown
     # browser versions
     - FIREFOX_VERSION=67.0b9
     - CHROME_VERSION=google-chrome-stable
@@ -46,7 +48,7 @@ before_install:
       sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
       source $HOME/.cargo/env;
       rustup install ${RUST_VERSION};
-      rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
+      rustup target add ${RUST_TARGETS} --toolchain ${RUST_VERSION}
     fi;
     sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
     gem install dpl --no-ri --no-rdoc;
@@ -303,6 +305,7 @@ matrix:
       script: *_e2e_tests_script
 
     - stage: artifacts-deploy
+      name: "Upload artifacts to GH releases and extension stores"
       script: *_chrome_webstore_deploy
       if: branch =~ ^develop|staging|master OR type = pull_request
       # env provides cache
