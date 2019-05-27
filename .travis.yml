@@ -37,6 +37,9 @@ env:
     - CHROME_PRO_APP_ID=fkkmcnnpaaimcaikbjgklcibgncdgejc
     - DISPLAY=:0
 
+before_install:
+  - bash .travis/before_install.sh
+
 install: 
   - npm ci
 
