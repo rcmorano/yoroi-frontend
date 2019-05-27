@@ -2,7 +2,7 @@
 
 set -xeo pipefail    
 
-PATH=$PATH:$(npm bin)
+export PATH=$PATH:$(npm bin)
 
 cp -a artifacts/*crx .
 cp -a artifacts/*xpi .
