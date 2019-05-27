@@ -8,8 +8,8 @@ services:
 
 cache:
   directories:
-    - ~/.npm # cache npm's cache
-    - ~/.rustup 
+    - ~/.npm
+    - ~/.rustup
     - ~/.cargo
     # cache built artifacts from install phase to speedup e2e
     - build 
@@ -31,215 +31,14 @@ env:
     - GITHUB_EMAIL=rnd@emurgo.io
     - GIT_SHORT_COMMIT=${TRAVIS_COMMIT:0:7}
     - CHROME_CODEBASE_URL=https://www.sample.com/dw/yoroi-extension.crx
-    - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1/items
+    - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1
     - CHROME_DEV_APP_ID=febkioblpijdgicianpklkmolpbagnbo
     - CHROME_STG_APP_ID=bbaanljemfingpglehbbpdlhhahliihe
     - CHROME_PRO_APP_ID=fkkmcnnpaaimcaikbjgklcibgncdgejc
     - DISPLAY=:0
 
-# lets say these are pre-depends
-before_install:
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- ${DISPLAY} -ac -screen 0 ${SCREEN_RESOLUTION}"
-  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  - >
-    if [ ! -e "$HOME/.cargo/bin" ];
-    then
-      curl https://sh.rustup.rs -sSf | sh -s -- -y;
-      sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
-      source $HOME/.cargo/env;
-      rustup install ${RUST_VERSION};
-      rustup target add ${RUST_TARGETS} --toolchain ${RUST_VERSION}
-    fi;
-    sudo ln -fs $HOME/.cargo/bin/* /usr/local/bin/;
-    gem install dpl --no-ri --no-rdoc;
-
 install: 
   - npm ci
-
-_e2e_tests:
-  # install brave, chrome or firefox
-  install: &_e2e_tests_install
-    - set -eo pipefail;
-    - >
-      if [ "${BROWSER}" == "brave" ];
-      then
-        curl -sL https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -a;
-        source /etc/lsb-release;
-        echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/brave-browser-release-${UBUNTU_CODENAME}.list;
-        sudo apt-get update -qqy;
-        sudo apt-get install -qqy brave-keyring brave-browser;
-        BRAVE_VERSION=$(apt-cache policy brave-browser|grep -i installed | awk "{print \$NF}");
-        echo "Using chromedriver version: ${BRAVE_CHROMEDRIVER_VERSION}";
-        curl -o /tmp/chromedriver_linux64.zip -sL https://github.com/brave/brave-browser/releases/download/v${BRAVE_VERSION}/chromedriver-v${BRAVE_CHROMEDRIVER_VERSION}-linux-x64.zip;
-        unzip /tmp/chromedriver_linux64.zip -d /tmp;
-        rm -rf chromedriver_linux64.zip;
-        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
-        sudo chmod +x /usr/local/bin/chromedriver;
-      fi;
-    - >
-      if [ "${BROWSER}" == "chrome" ];
-      then
-        curl -sL https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -;
-        echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list;
-        sudo apt-get update -qqy;
-        sudo apt-get install -qqy ${CHROME_VERSION:-google-chrome-stable};
-        CHROME_STRING=$(google-chrome --version);
-        CHROME_VERSION_STRING=$(echo "${CHROME_STRING}" | grep -oP "\d+\.\d+\.\d+\.\d+");
-        CHROME_MAYOR_VERSION=$(echo "${CHROME_VERSION_STRING%%.*}");
-        CD_VERSION=$(curl -sL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAYOR_VERSION}");
-        if [ -z "$CHROME_DRIVER_VERSION" ]; \
-        then
-          CHROME_DRIVER_VERSION="${CD_VERSION}";
-        fi;
-        echo "Using chromedriver version: $CD_VERSION";
-        curl -o /tmp/chromedriver_linux64.zip -sL https://chromedriver.storage.googleapis.com/$CD_VERSION/chromedriver_linux64.zip;
-        unzip /tmp/chromedriver_linux64.zip -d /tmp;
-        rm -rf chromedriver_linux64.zip;
-        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver;
-        sudo chmod +x /usr/local/bin/chromedriver;
-      fi;
-    - >
-      if [ "${BROWSER}" == "firefox" ];
-      then
-        curl -o /tmp/firefox.bz2 -sL https://download-installer.cdn.mozilla.net/pub/devedition/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/firefox-${FIREFOX_VERSION}.tar.bz2;
-        sudo rm -f /opt/firefox/firefox;
-        sudo tar -C /opt -jxf /tmp/firefox.bz2;
-        sudo rm -f /usr/local/bin/firefox;
-        sudo ln -s /opt/firefox/firefox-bin /usr/local/bin/firefox;
-        which firefox;
-      fi;
-    - >
-      npm install;
-
-      
-  script: &_e2e_tests_script
-    - >
-      set -eo pipefail;
-      cp -a artifacts/*crx .;
-      cp -a artifacts/*xpi .;
-      npm run test-e2e-${BROWSER};
-
-_build_yoroi_script:
-  script: &_build_yoroi_script
-    - >
-      set -eo pipefail;
-      if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ];
-      then
-        npm run test-prepare;
-        mv *crx *xpi artifacts/;
-        touch build/${GIT_SHORT_COMMIT}.built;
-      fi;
-
-_chrome_webstore_deploy:
-  script: &_chrome_webstore_deploy
-    - >
-      set -eo pipefail;
-      npm install -g chrome-webstore-upload-cli;
-    - >
-      rm -rf build; rm -rf artifacts/*;
-      if [ "${TRAVIS_PULL_REQUEST}" != "false" ];
-      then
-        RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}";
-        echo "RELEASE_TAG: ${RELEASE_TAG}";
-        ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
-        XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
-        CRX_NAME="yoroi-${RELEASE_TAG}.crx";
-        npm run build -- --env "staging";
-        sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-        find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
-        mv sha256sum.list build/;
-        npm run compress -- --env "staging" --zip-only --app-id APP_ID --codebase "${CHROME_CODEBASE_URL}";
-        ls -hl . build;  
-        mv Yoroi*zip artifacts/${ZIP_NAME};
-        mv Yoroi*xpi artifacts/${XPI_NAME};
-        ACCESS_TOKEN=$(curl -s -X POST -d "client_id=$GOOGLE_CLIENT_ID&client_secret=$GOOGLE_CLIENT_SECRET&refresh_token=$GOOGLE_REFRESH_TOKEN&grant_type=refresh_token" https://www.googleapis.com/oauth2/v4/token | grep access_token | awk -F: '{print $2}' | sed 's|.*"\(.*\)".*|\1|g');
-        APP_ID=$(curl  \
-          -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
-          -H "x-goog-api-version: 2" \
-          -X POST \
-          -T artifacts/${ZIP_NAME} \
-          -v \
-          ${CHROME_WEBSTORE_API_ENDPOINT} | sed 's|.*"id":"\(.*\)","upload.*|\1|g');
-        webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
-        curl -o artifacts/${CRX_NAME} \
-          -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
-          -H "x-goog-api-version: 2" \
-          -X GET \
-          -v \
-          ${CHROME_WEBSTORE_API_ENDPOINT}/${APP_ID};
-      else
-        RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}";
-        echo "RELEASE_TAG: ${RELEASE_TAG}";
-        ZIP_NAME="yoroi-${RELEASE_TAG}.zip";
-        XPI_NAME="yoroi-${RELEASE_TAG}.xpi";
-        CRX_NAME="yoroi-${RELEASE_TAG}.crx";
-        if [ "${TRAVIS_BRANCH}" == "develop" ];
-        then
-          npm run build -- --env "staging";
-          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
-          mv sha256sum.list build/;
-          npm run compress -- --env "staging" --zip-only --app-id ${CHROME_DEV_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
-          ls -hl . build;
-          mv Yoroi*zip artifacts/${ZIP_NAME};
-          mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_DEV_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
-          curl -o artifacts/${CRX_NAME} \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
-            -H "x-goog-api-version: 2" \
-            -X GET \
-            -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT}/${CHROME_DEV_APP_ID};
-        fi;
-        if [ "${TRAVIS_BRANCH}" == "staging" ];
-        then
-          npm run build -- --env "staging";
-          find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
-          mv sha256sum.list build/;
-          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          npm run compress -- --env "staging" --zip-only --app-id ${CHROME_STG_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
-          ls -hl . build;
-          mv Yoroi*zip artifacts/${ZIP_NAME};
-          mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_STG_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
-          curl -o artifacts/${CRX_NAME} \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
-            -H "x-goog-api-version: 2" \
-            -X GET \
-            -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT}/${CHROME_STG_APP_ID};
-        fi;
-        if [ "${TRAVIS_BRANCH}" == "master" ];
-        then
-          npm run build -- --env "mainnet";
-          find build -type f -exec sha256sum {} \; | sed 's| build/||' > sha256sum.list
-          mv sha256sum.list build/;
-          sed -i "s|\"name\": \".*|\"name\":\"Yoroi ${RELEASE_TAG}\",|" build/manifest.json;
-          ls -hl . build;
-          npm run compress -- --env "mainnet" --zip-only --app-id ${CHROME_PRO_APP_ID} --codebase "${CHROME_CODEBASE_URL}";
-          mv Yoroi*zip artifacts/${ZIP_NAME};
-          mv Yoroi*xpi artifacts/${XPI_NAME};
-          webstore upload --source "artifacts/${ZIP_NAME}" --extension-id="${CHROME_PRO_APP_ID}" --client-id="${GOOGLE_CLIENT_ID}" --client-secret="${GOOGLE_CLIENT_SECRET}" --refresh-token="${GOOGLE_REFRESH_TOKEN}" --trusted-testers;
-          curl -o artifacts/${CRX_NAME} \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
-            -H "x-goog-api-version: 2" \
-            -X GET \
-            -v \
-            ${CHROME_WEBSTORE_API_ENDPOINT}/${CHROME_PRO_APP_ID};
-        fi;
-      fi;
-      tar -zcf artifacts/build-${RELEASE_TAG}.tar.gz build;
-      echo "Release sha256 checksums:";
-      find build -type f -exec sha256sum {} \; | tee -a artifacts/sha256sum.list
-      sha256sum build*tar.gz | tee -a artifacts/sha256sum.list
-      sha256sum artifacts/${CRX_NAME} | tee -a artifacts/sha256sum.list
-      sha256sum artifacts/${XPI_NAME} | tee -a artifacts/sha256sum.list
-      sha256sum artifacts/${ZIP_NAME} | tee -a artifacts/sha256sum.list
-
-#_github_releases_deploy:
-#  script: &_github_releases_deploy
-#    ->
-#     dpl
 
 stages:
   - code-qa
@@ -272,7 +71,7 @@ matrix:
         - BROWSER=chrome
         - BROWSER=firefox
         - BROWSER=brave
-      script: *_build_yoroi_script
+      script: bash .travis/build_yoroi.sh
 
     # stage: e2e-tests
     # NOTE: 3x $BROWSER is a hack to share cache from build-yoroi stage. Last env var prevails.
@@ -283,8 +82,8 @@ matrix:
         - BROWSER=chrome
         - BROWSER=firefox
         - BROWSER=brave
-      install: *_e2e_tests_install
-      script: *_e2e_tests_script
+      install: bash .travis/e2e_tests_install.sh
+      script: bash .travis/e2e_tests.sh
     - stage: e2e-tests
       if: branch =~ ^develop|staging|master OR type = pull_request
       name: "Chrome End-to-End tests"
@@ -292,8 +91,8 @@ matrix:
         - BROWSER=firefox
         - BROWSER=brave
         - BROWSER=chrome
-      install: *_e2e_tests_install
-      script: *_e2e_tests_script
+      install: bash .travis/e2e_tests_install.sh
+      script: bash .travis/e2e_tests.sh
     - stage: e2e-tests
       if: branch =~ ^develop|staging|master OR type = pull_request
       name: "Firefox End-to-End tests"
@@ -301,12 +100,12 @@ matrix:
         - BROWSER=brave
         - BROWSER=chrome
         - BROWSER=firefox
-      install: *_e2e_tests_install
-      script: *_e2e_tests_script
+      install: bash .travis/e2e_tests_install.sh
+      script: bash .travis/e2e_tests.sh
 
     - stage: artifacts-deploy
       name: "Upload artifacts to GH releases and extension stores"
-      script: *_chrome_webstore_deploy
+      script: bash .travis/chrome_webstore_deploy.sh
       if: branch =~ ^develop|staging|master OR type = pull_request
       # env provides cache
       env:
