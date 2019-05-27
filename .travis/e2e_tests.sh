@@ -2,8 +2,7 @@
 
 set -xeo pipefail    
 
-export PATH=$PATH:$(npm bin)
-
+npm ci
 cp -a artifacts/*crx .
 cp -a artifacts/*xpi .
 npm run test-e2e-${BROWSER}
