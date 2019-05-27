@@ -38,6 +38,7 @@ env:
     - DISPLAY=:0
 
 before_install:
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- ${DISPLAY} -ac -screen 0 ${SCREEN_RESOLUTION}"
   - bash .travis/before_install.sh
 
 install: 
