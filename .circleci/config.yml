@@ -49,7 +49,7 @@ jobs:
     steps:
       - checkout
 
-      - run: bash ./circleci/before_install.sh
+      - run: bash .circleci/before_install.sh
       # Because npm link will write in this path
       - run: sudo chown -R "$(whoami):$(whoami)" /usr/local/lib/node_modules
       - run: npm ci
