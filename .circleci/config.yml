@@ -58,8 +58,8 @@ jobs:
       - image: circleci/node:8-browsers
 
     steps:
-      - run: bash .circleci/stop_redundant_jobs.sh
       - checkout
+      - run: bash .circleci/stop_redundant_jobs.sh
       - *restore_cache
       - run: bash .circleci/before_install.sh
 
