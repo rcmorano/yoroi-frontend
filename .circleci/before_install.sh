@@ -25,4 +25,4 @@ do
   fi
 done
 
-sudo apt-get install -qq -y python-pip && sudo pip install awscli
+sudo apt-get install -qq -y python-pip imagemagick jq && sudo pip install awscli

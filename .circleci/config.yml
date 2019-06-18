@@ -51,7 +51,7 @@ checkout:
   # borrowed from: https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
   post:
     - |
-        CIRCLE_PR_BASE_BRANCH=$(curl -su $GITHUB_USERNAME:$GITHUB_PAT | jq -r .base.ref)
+        CIRCLE_PR_BASE_BRANCH=$(curl -su $GITHUB_USERNAME:$GITHUB_PAT https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH} | jq -r .base.ref)
         if [[ -n "${CIRCLE_PR_NUMBER}" ]]
         then
             # Update PR refs for testing.
@@ -114,7 +114,6 @@ jobs:
 
     steps:
       - *attach_workspace
-      - *restore_cache
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
@@ -131,7 +130,6 @@ jobs:
 
     steps:
       - *attach_workspace
-      - *restore_cache
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
@@ -151,7 +149,6 @@ jobs:
 
     steps:
       - *attach_workspace
-      - *restore_cache
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
 

@@ -4,6 +4,7 @@ set -x
 GITHUB_PAT="${GITHUB_PAT}"
 REPO_SLUG="${CIRCLE_PROJECT_REPONAME}"
 PR_NUMBER="${CIRCLE_PR_NUMBER}"
+CIRCLE_PR_BASE_BRANCH=$(curl -su $GITHUB_USERNAME:$GITHUB_PAT https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH} | jq -r .base.ref)
 
 export AWS_ACCESS_KEY_ID="${ARTIFACTS_KEY}"
 export AWS_SECRET_ACCESS_KEY="${ARTIFACTS_SECRET}"
@@ -14,13 +15,15 @@ S3_ENDPOINT="https://${S3_BUCKET}.s3.amazonaws.com"
 test -z $SCREENSHOT_DIFF_THRESHOLD && SCREENSHOT_DIFF_THRESHOLD=0
 test -z $SCREENSHOT_DIFF_COLOR && SCREENSHOT_DIFF_COLOR=yellow
 
-# install bc calculator if not present
-BC_BIN=$(which bc); if [ -z "${BC_BIN}" ]; then sudo apt-get install -qqy bc; fi
+# install depends if not present
+JQ_BIN=$(which jq); if [ -z "${JQ_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy jq; fi
+COMPARE_BIN=$(which compare); if [ -z "${COMPARE_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy imagemagick; fi
+BC_BIN=$(which bc); if [ -z "${BC_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy bc; fi
 
 # check if there are any screenshots
 if [ $(find screenshots -type f | wc -l) -gt 0 ]
 then
-  if [ "${CIRCLE_PULL_REQUEST}" != "false" ]
+  if [ ! -z "${PR_NUMBER}" ]
   then
     OBJECT_KEY_BASEPATH="screenshots/${BROWSER}/${PR_NUMBER}-${GIT_SHORT_COMMIT}"
   else
@@ -40,14 +43,14 @@ then
   aws s3 cp /tmp/pr-screenshots-urls "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}/pr-screenshots-urls"
   
   # compare with PR base branch's screenshots and add diferences
-  if [ "${CIRCLE_PULL_REQUEST}" != "false" ]
+  if [ ! -z "${PR_NUMBER}" ]
   then
   
     rm -f /tmp/pr-differences-urls
     find screenshots -type f | while read file;
     do
       BASENAME=$(echo ${file} | sed "s|^screenshots/||")
-      BASE_BRANCH_OBJECT_KEY="screenshots/${BROWSER}/${CIRCLE_BRANCH}/${BASENAME}"
+      BASE_BRANCH_OBJECT_KEY="screenshots/${BROWSER}/${CIRCLE_PR_BASE_BRANCH}/${BASENAME}"
       BASE_BRANCH_S3_URI="$(echo ${S3_ENDPOINT}/${BASE_BRANCH_OBJECT_KEY} | sed 's| |%20|g')"
       DIFFERENCE_OBJECT_KEY="${OBJECT_KEY_BASEPATH}/differences/${BASENAME}"
       # TODO: implement cache (tho it might not make much sense)
