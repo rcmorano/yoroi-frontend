@@ -8,7 +8,18 @@ aliases:
   - &attach_workspace
       attach_workspace:
         at: ~/repo
-  - &_global_environment
+  - &restore_cache
+      restore_cache:
+        keys:
+          - generic-tools-cache
+  - &save_cache
+      save_cache:
+        paths:
+         - ~/.npm
+         - ~/.rustup
+         - ~/.cargo
+        key: generic-tools-cache
+  - &global_environment
       # runtime versions
       RUST_VERSION: 1.32.0
       RUST_TARGETS: wasm32-unknown-unknown
@@ -40,7 +51,7 @@ aliases:
 jobs:
   build-setup:
     environment:
-      <<: *_global_environment
+      <<: *global_environment
       POC: poc
     working_directory: ~/repo
     docker:
@@ -48,10 +59,11 @@ jobs:
 
     steps:
       - checkout
-
+      - *restore_cache
       - run: bash .circleci/before_install.sh
 
       - run: npm ci
+      - *save_cache
       
       # code quality checks
       - run: npm run flow
@@ -70,7 +82,7 @@ jobs:
 
   test-brave:
     environment:
-      <<: *_global_environment
+      <<: *global_environment
       BROWSER: brave
     working_directory: ~/repo
     docker:
@@ -79,6 +91,7 @@ jobs:
     steps:
       - checkout
       - *attach_workspace
+      - *restore_cache
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
@@ -87,7 +100,7 @@ jobs:
 
   test-chrome:
     environment:
-      <<: *_global_environment
+      <<: *global_environment
       BROWSER: chrome
     working_directory: ~/repo
     docker:
@@ -97,6 +110,7 @@ jobs:
       - checkout
       - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - *attach_workspace
+      - *restore_cache
       - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
@@ -106,7 +120,7 @@ jobs:
 
   test-firefox:
     environment:
-      <<: *_global_environment
+      <<: *global_environment
       BROWSER: firefox
     working_directory: ~/repo
     docker:
@@ -119,13 +133,14 @@ jobs:
       - checkout
       - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - *attach_workspace
+      - *restore_cache
       - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
 
   deploy-artifacts:
     environment:
-      <<: *_global_environment
+      <<: *global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
