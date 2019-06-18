@@ -89,7 +89,6 @@ jobs:
       - image: emurgornd/circleci-node-8-browsers:brave
 
     steps:
-      - checkout
       - *attach_workspace
       - *restore_cache
       - run: bash .circleci/e2e_tests.sh
@@ -107,11 +106,8 @@ jobs:
       - image: circleci/node:8-browsers
 
     steps:
-      - checkout
-      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - *attach_workspace
       - *restore_cache
-      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
@@ -130,11 +126,8 @@ jobs:
       - image: emurgornd/circleci-node-8-browsers:firefox-dev
 
     steps:
-      - checkout
-      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - *attach_workspace
       - *restore_cache
-      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
 
