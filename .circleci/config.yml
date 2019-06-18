@@ -175,7 +175,7 @@ jobs:
       - image: circleci/node:8-browsers
     steps:
       - *attach_workspace
-      - run: ls -hl
+      - run: echo $RUN_EXTRA_TESTS
 
 workflows:
   version: 2
