@@ -181,6 +181,7 @@ workflows:
   version: 2
   build-deploy:
     jobs:
+      - build-setup
       - test-brave:
           filters:
             branches:
