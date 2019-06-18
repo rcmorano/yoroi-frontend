@@ -9,8 +9,8 @@ aliases:
       attach_workspace:
         at: ~/repo
 
-_environment:
-  global: &_global_environment
+_global_environment: &_global_environment
+  environment:
     # runtime versions
     RUST_VERSION: 1.32.0
     RUST_TARGETS: wasm32-unknown-unknown
@@ -41,7 +41,7 @@ _environment:
 
 jobs:
   build-setup:
-    environment: *_global_environment
+    <<: *_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
@@ -70,8 +70,8 @@ jobs:
           paths: .
 
   test-brave:
+    <<: *_global_environment
     environment: 
-      *_global_environment
       BROWSER: brave
     working_directory: ~/repo
     docker:
@@ -87,8 +87,8 @@ jobs:
           paths: .
 
   test-chrome:
+    <<: *_global_environment
     environment:
-      *_global_environment
       BROWSER: chrome
     working_directory: ~/repo
     docker:
@@ -106,8 +106,8 @@ jobs:
           paths: .
 
   test-firefox:
+    <<: *_global_environment
     environment:
-      *_global_environment
       BROWSER: firefox
     working_directory: ~/repo
     docker:
@@ -125,7 +125,7 @@ jobs:
       - run: bash .circleci/s3_screenshots_upload.sh
 
   deploy-artifacts:
-    environment: *_global_environment
+    <<: *_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
