@@ -12,8 +12,6 @@ then
   echo 'export PATH=$HOME/.cargo/bin/:$PATH' >> ${BASH_ENV}
 fi
 
-source $BASH_ENV
-
 if [ -z "$(ls ~/.rustup/toolchains | grep ^${RUST_VERSION}-)" ]
 then
   rustup install ${RUST_VERSION}
