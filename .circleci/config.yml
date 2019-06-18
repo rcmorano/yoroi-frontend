@@ -1,4 +1,4 @@
-# Javascript Node CircleCI 2.0 configuration file
+# Javascript Node CircleCI 1.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
@@ -9,8 +9,39 @@ aliases:
       attach_workspace:
         at: ~/repo
 
+_environment:
+  global: &_global_environment
+    # runtime versions
+    - RUST_VERSION=1.32.0
+    - RUST_TARGETS=wasm32-unknown-unknown
+    # misc
+    - GITHUB_USERNAME=rnd-at-emurgo
+    - GITHUB_EMAIL=rnd@emurgo.io
+    - GIT_SHORT_COMMIT=${CIRCLE_SHA1:0:7}
+    - CHROME_CODEBASE_URL=https://www.sample.com/dw/yoroi-extension.crx
+    - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1
+    - CHROME_DEV_APP_ID=febkioblpijdgicianpklkmolpbagnbo
+    - CHROME_STG_APP_ID=bbaanljemfingpglehbbpdlhhahliihe
+    - CHROME_PRO_APP_ID=fkkmcnnpaaimcaikbjgklcibgncdgejc
+    - SCREENSHOT_DIFF_THRESHOLD=0
+    - SCREENSHOT_DIFF_COLOR=yellow
+
+    # Encrypted env vars from ui:
+    # AWS_ACCESS_KEY_ID="${ARTIFACTS_KEY}"
+    # AWS_SECRET_ACCESS_KEY="${ARTIFACTS_SECRET}"
+    # AWS_REGION="${ARTIFACTS_REGION}"
+    # S3_BUCKET="${ARTIFACTS_BUCKET}"
+    # DOCKER_USERNAME
+    # DOCKER_PASSWORD
+    # GITHUB_PAT
+    # GOOGLE_CLIENT_ID
+    # GOOGLE_CLIENT_SECRET
+    # GOOGLE_REFRESH_TOKEN
+
+
 jobs:
   build-setup:
+    environment: &_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
@@ -18,15 +49,7 @@ jobs:
     steps:
       - checkout
 
-      # install rustup
-      - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - run: echo 'export PATH=$HOME/.cargo/bin/:$PATH' >> $BASH_ENV
-      # use 1.32.0 version. 
-      # // TODO: This is hardcoded but taken from js-cardano-wasm repo
-      # which is checked out later
-      - run: rustup install 1.32.0
-      - run: rustup target add wasm32-unknown-unknown --toolchain 1.32.0
-
+      - run: bash ./circleci/before_install.sh
       # Because npm link will write in this path
       - run: sudo chown -R "$(whoami):$(whoami)" /usr/local/lib/node_modules
       - run: npm ci
@@ -39,7 +62,7 @@ jobs:
       - run: npm run jest
 
       # create extensions to be consumed by browsers
-      - run: npm run test-prepare
+      - run: bash .circleci/build_yoroi.sh
 
       # persist results to then use them in tests
       - persist_to_workspace:
@@ -47,6 +70,8 @@ jobs:
           paths: .
 
   test-brave:
+    environment: &_global_environment
+      - BROWSER=brave
     working_directory: ~/repo
     docker:
       - image: emurgornd/circleci-node-8-browsers:brave
@@ -54,19 +79,33 @@ jobs:
     steps:
       - checkout
       - *attach_workspace
-      - run: npm run test-e2e-brave
+      - run: bash .circleci/e2e_tests.sh
+      - run: bash .circleci/s3_screenshots_upload.sh
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
 
   test-chrome:
+    environment: &_global_environment
+      - BROWSER=chrome
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
 
     steps:
       - checkout
+      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - *attach_workspace
-      - run: npm run test-e2e-chrome
+      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
+      - run: bash .circleci/e2e_tests.sh
+      - run: bash .circleci/s3_screenshots_upload.sh
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
 
   test-firefox:
+    environment: &_global_environment
+      - BROWSER=firefox
     working_directory: ~/repo
     docker:
       # unsiggned addons are only supported in Firefox-dev, Firefox nightly and Firefox-esr
@@ -76,22 +115,23 @@ jobs:
 
     steps:
       - checkout
+      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
       - *attach_workspace
+      - run: git log --pretty=format:'%h' | head -n1 && pwd && ls -hl  
+      - run: bash .circleci/e2e_tests.sh
+      - run: bash .circleci/s3_screenshots_upload.sh
 
-      - run: npm run test-e2e-firefox
-
-  deploy-testnet:
+  deploy-artifacts:
+    environment: &_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
 
     steps:
       - *attach_workspace
-
-      - run: npm run build -- --env "staging"
-      - run: npm run compress -- --env "staging" --zip-only --app-id $APP_ID --codebase "https://www.sample.com/dw/yoroi-extension.crx"
-      - run: sudo npm install -g chrome-webstore-upload-cli
-      - run: cd ~/build/repo/ && webstore upload --source yoroi.zip --extension-id="${APP_ID}" --client-id="${CLIENT_ID}" --client-secret="${CLIENT_SECRET}" --refresh-token="${REFRESH_TOKEN}" --auto-publish --trusted-testers
+      - run: bash .circleci/chrome_webstore_deploy.sh
+      - run: bash .circleci/s3_artifacts_upload.sh
+      - run: bash .circleci/pull_request_comment.sh
 
 workflows:
   version: 2
@@ -119,10 +159,7 @@ workflows:
                 - l10n_develop
           requires:
             - build-setup
-      - deploy-testnet:
+      - deploy-artifacts:
           requires:
             - test-chrome
             - test-firefox
-          filters:
-            branches:
-              only: staging
