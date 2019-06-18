@@ -203,5 +203,6 @@ workflows:
             - test-chrome
             - test-firefox
       - ondemand-deploy:
-          branches:
-            ignore: /.*/
+          filters:
+            branches:
+              ignore: /.*/
