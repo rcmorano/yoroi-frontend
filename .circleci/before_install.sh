@@ -5,6 +5,7 @@ set -xeo pipefail
 # Because npm link will write in this path
 sudo chown -R "$(whoami):$(whoami)" /usr/local/lib/node_modules
 
+export PATH=$HOME/.cargo/bin/:$PATH
 if [ -z "$(which cargo)" ]
 then
   curl https://sh.rustup.rs -sSf | sh -s -- -y
