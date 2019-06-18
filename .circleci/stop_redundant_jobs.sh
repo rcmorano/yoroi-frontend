@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # script borrowed from: https://discuss.circleci.com/t/auto-cancel-redundant-builds-not-working-for-workflow/13852/31
-set -x
 
 PROJECT_NAME=$CIRCLE_PROJECT_REPONAME
 ORG_NAME=$CIRCLE_PROJECT_USERNAME
