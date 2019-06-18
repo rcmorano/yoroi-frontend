@@ -182,9 +182,7 @@ workflows:
   build-deploy:
     jobs:
       - build-setup:
-          context: yoroi-frontend
       - test-brave:
-          context: yoroi-frontend
           filters:
             branches:
               only:
@@ -192,7 +190,6 @@ workflows:
           requires:
             - build-setup
       - test-chrome:
-          context: yoroi-frontend
           filters:
             branches:
               ignore:
@@ -200,7 +197,6 @@ workflows:
           requires:
             - build-setup
       - test-firefox:
-          context: yoroi-frontend
           filters:
             branches:
               ignore:
@@ -208,7 +204,6 @@ workflows:
           requires:
             - build-setup
       - deploy-artifacts:
-          context: yoroi-frontend
           requires:
             - test-chrome
             - test-firefox
