@@ -11,14 +11,14 @@ aliases:
   - &restore_cache
       restore_cache:
         keys:
-          - generic-tools-cache
+          - generic-tools-cache-{{ checksum "package.json" }}
   - &save_cache
       save_cache:
         paths:
          - ~/.npm
          - ~/.rustup
          - ~/.cargo
-        key: generic-tools-cache
+        key: generic-tools-cache-{{ checksum "package.json" }}
   - &global_environment
       # runtime versions
       RUST_VERSION: 1.32.0
