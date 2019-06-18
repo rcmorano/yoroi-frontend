@@ -10,7 +10,6 @@ aliases:
         at: ~/repo
 
 _global_environment: &_global_environment
-  environment:
     # runtime versions
     RUST_VERSION: 1.32.0
     RUST_TARGETS: wasm32-unknown-unknown
@@ -41,7 +40,8 @@ _global_environment: &_global_environment
 
 jobs:
   build-setup:
-    <<: *_global_environment
+    environment:
+      <<: *_global_environment
       POC: poc
     working_directory: ~/repo
     docker:
