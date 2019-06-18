@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - checkout
-      - run: bash .circleci/stop_redundant_jobs.sh
+      #- run: bash .circleci/stop_redundant_jobs.sh
       - *restore_cache
       - run: bash .circleci/before_install.sh
 
