@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # script borrowed from: https://discuss.circleci.com/t/auto-cancel-redundant-builds-not-working-for-workflow/13852/31
+set -x
 
 PROJECT_NAME=$CIRCLE_PROJECT_REPONAME
 ORG_NAME=$CIRCLE_PROJECT_USERNAME
@@ -11,7 +12,7 @@ getRunningJobs() {
   local runningJobs
 
   circleApiResponse=$(curl -u ${CIRCLE_TOKEN}: --silent --show-error "$CIRCLE_BASE_URL/tree/$CIRCLE_BRANCH" -H "Accept: application/json")
-  runningJobs=$(echo "$circleApiResponse" | jq 'map(if .status == "running" then .build_num else "None" end) - ["None"] | .[]')
+  runningJobs=$(echo "$circleApiResponse" | jq 'map(if .status == "running" then .build_num else "None" end) - ["None"] | .[]' | sed "s|${CIRCLE_BUILD_NUM}||g" )
   echo "$runningJobs"
 }
 
@@ -21,7 +22,7 @@ cancelRunningJobs() {
   for buildNum in $runningJobs;
   do
     echo Canceling "$buildNum"
-    curl --silent --show-error -X POST "$CIRCLE_BASE_URL/$buildNum/cancel?$QUERY_PARAMS" >/dev/null
+    curl --silent --show-error -u ${CIRCLE_TOKEN}: -X POST "$CIRCLE_BASE_URL/$buildNum/cancel"
   done
 }
 
