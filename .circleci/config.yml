@@ -71,7 +71,8 @@ jobs:
           paths: .
 
   test-brave:
-    <<: *_global_environment
+    environment:
+      <<: *_global_environment
       BROWSER: brave
     working_directory: ~/repo
     docker:
@@ -87,7 +88,8 @@ jobs:
           paths: .
 
   test-chrome:
-    <<: *_global_environment
+    environment:
+      <<: *_global_environment
       BROWSER: chrome
     working_directory: ~/repo
     docker:
@@ -105,7 +107,8 @@ jobs:
           paths: .
 
   test-firefox:
-    <<: *_global_environment
+    environment:
+      <<: *_global_environment
       BROWSER: firefox
     working_directory: ~/repo
     docker:
@@ -123,7 +126,8 @@ jobs:
       - run: bash .circleci/s3_screenshots_upload.sh
 
   deploy-artifacts:
-    <<: *_global_environment
+    environment:
+      <<: *_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
