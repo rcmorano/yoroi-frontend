@@ -2,6 +2,9 @@
 
 set -xeo pipefail
 
+env
+echo $CONTEXT_POC
+
 # Because npm link will write in this path
 sudo chown -R "$(whoami):$(whoami)" /usr/local/lib/node_modules
 
