@@ -8,7 +8,7 @@ sudo chown -R "$(whoami):$(whoami)" /usr/local/lib/node_modules
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 echo 'export PATH=$HOME/.cargo/bin/:$PATH' >> ${BASH_ENV}
 source $BASH_ENV
-if [ -z "$(ls ~/.rustup | grep ^${RUST_VERSION}-)" ]
+if [ -z "$(ls ~/.rustup/toolchains | grep ^${RUST_VERSION}-)" ]
 then
   rustup install ${RUST_VERSION}
 fi
