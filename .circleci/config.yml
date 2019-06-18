@@ -12,25 +12,25 @@ aliases:
 _environment:
   global: &_global_environment
     # runtime versions
-    - RUST_VERSION=1.32.0
-    - RUST_TARGETS=wasm32-unknown-unknown
+    RUST_VERSION: 1.32.0
+    RUST_TARGETS: wasm32-unknown-unknown
     # misc
-    - GITHUB_USERNAME=rnd-at-emurgo
-    - GITHUB_EMAIL=rnd@emurgo.io
-    - GIT_SHORT_COMMIT=${CIRCLE_SHA1:0:7}
-    - CHROME_CODEBASE_URL=https://www.sample.com/dw/yoroi-extension.crx
-    - CHROME_WEBSTORE_API_ENDPOINT=https://www.googleapis.com/upload/chromewebstore/v1.1
-    - CHROME_DEV_APP_ID=febkioblpijdgicianpklkmolpbagnbo
-    - CHROME_STG_APP_ID=bbaanljemfingpglehbbpdlhhahliihe
-    - CHROME_PRO_APP_ID=fkkmcnnpaaimcaikbjgklcibgncdgejc
-    - SCREENSHOT_DIFF_THRESHOLD=0
-    - SCREENSHOT_DIFF_COLOR=yellow
+    GITHUB_USERNAME: rnd-at-emurgo
+    GITHUB_EMAIL: rnd@emurgo.io
+    GIT_SHORT_COMMIT: ${CIRCLE_SHA1:0:7}
+    CHROME_CODEBASE_URL: https://www.sample.com/dw/yoroi-extension.crx
+    CHROME_WEBSTORE_API_ENDPOINT: https://www.googleapis.com/upload/chromewebstore/v1.1
+    CHROME_DEV_APP_ID: febkioblpijdgicianpklkmolpbagnbo
+    CHROME_STG_APP_ID: bbaanljemfingpglehbbpdlhhahliihe
+    CHROME_PRO_APP_ID: fkkmcnnpaaimcaikbjgklcibgncdgejc
+    SCREENSHOT_DIFF_THRESHOLD: 0
+    SCREENSHOT_DIFF_COLOR: yellow
 
     # Encrypted env vars from ui:
-    # AWS_ACCESS_KEY_ID="${ARTIFACTS_KEY}"
-    # AWS_SECRET_ACCESS_KEY="${ARTIFACTS_SECRET}"
-    # AWS_REGION="${ARTIFACTS_REGION}"
-    # S3_BUCKET="${ARTIFACTS_BUCKET}"
+    # AWS_ACCESS_KEY_ID: "${ARTIFACTS_KEY}"
+    # AWS_SECRET_ACCESS_KEY: "${ARTIFACTS_SECRET}"
+    # AWS_REGION: "${ARTIFACTS_REGION}"
+    # S3_BUCKET: "${ARTIFACTS_BUCKET}"
     # DOCKER_USERNAME
     # DOCKER_PASSWORD
     # GITHUB_PAT
@@ -41,8 +41,7 @@ _environment:
 
 jobs:
   build-setup:
-    environment:
-      <<: *_global_environment
+    environment: *_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
@@ -72,8 +71,8 @@ jobs:
 
   test-brave:
     environment: 
-      <<: *_global_environment
-      - BROWSER=brave
+      *_global_environment
+      BROWSER: brave
     working_directory: ~/repo
     docker:
       - image: emurgornd/circleci-node-8-browsers:brave
@@ -89,8 +88,8 @@ jobs:
 
   test-chrome:
     environment:
-      <<: *_global_environment
-      - BROWSER=chrome
+      *_global_environment
+      BROWSER: chrome
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
@@ -108,8 +107,8 @@ jobs:
 
   test-firefox:
     environment:
-      <<: *_global_environment
-      - BROWSER=firefox
+      *_global_environment
+      BROWSER: firefox
     working_directory: ~/repo
     docker:
       # unsiggned addons are only supported in Firefox-dev, Firefox nightly and Firefox-esr
@@ -126,8 +125,7 @@ jobs:
       - run: bash .circleci/s3_screenshots_upload.sh
 
   deploy-artifacts:
-    environment:
-      <<: *_global_environment
+    environment: *_global_environment
     working_directory: ~/repo
     docker:
       - image: circleci/node:8-browsers
