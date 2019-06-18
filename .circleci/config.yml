@@ -51,10 +51,10 @@ checkout:
   # borrowed from: https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
   post:
     - |
+        CIRCLE_PR_BASE_BRANCH=$(curl -su $GITHUB_USERNAME:$GITHUB_PAT | jq -r .base.ref)
         if [[ -n "${CIRCLE_PR_NUMBER}" ]]
         then
             # Update PR refs for testing.
-            CIRCLE_PR_BASE_BRANCH=develop
             FETCH_REFS="+${CIRCLE_PR_BASE_BRANCH}:${CIRCLE_PR_BASE_BRANCH}"
             FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
             FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
