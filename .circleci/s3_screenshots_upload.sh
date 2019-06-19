@@ -52,6 +52,8 @@ then
       BASENAME=$(echo ${file} | sed "s|^screenshots/||")
       BASE_BRANCH_OBJECT_KEY="screenshots/${BROWSER}/${CIRCLE_PR_BASE_BRANCH}/${BASENAME}"
       BASE_BRANCH_S3_URI="$(echo ${S3_ENDPOINT}/${BASE_BRANCH_OBJECT_KEY} | sed 's| |%20|g')"
+      PR_OBJECT_KEY="${OBJECT_KEY_BASEPATH}/${BASENAME}"
+      PR_S3_URI="$(echo ${S3_ENDPOINT}/${PR_OBJECT_KEY} | sed 's| |%20|g')"
       DIFFERENCE_OBJECT_KEY="${OBJECT_KEY_BASEPATH}/differences/${BASENAME}"
       # TODO: implement cache (tho it might not make much sense)
       if [ ! -e "${BASE_BRANCH_OBJECT_KEY}" ]
@@ -70,6 +72,8 @@ then
         DIFFERENCE_S3_URI="$(echo ${S3_ENDPOINT}/${DIFFERENCE_OBJECT_KEY} | sed 's| |%20|g')"
         aws s3 cp "difference.png" "s3://${S3_BUCKET}/${DIFFERENCE_OBJECT_KEY}"
         echo "**- $(echo ${BASENAME} | sed 's|.png||'):**" >> /tmp/pr-differences-urls
+        echo "[Base branch (${CIRCLE_PR_BASE_BRANCH}) image](${BASE_BRANCH_S3_URI})" >> /tmp/pr-differences-urls
+        echo "[PR (${CIRCLE_BRANCH}/PR${PR_NUMBER}) image](${PR_S3_URI})" >> /tmp/pr-differences-urls
         echo "![${BASENAME}](${DIFFERENCE_S3_URI})" >> /tmp/pr-differences-urls
       fi
     done

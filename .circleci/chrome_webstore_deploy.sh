@@ -28,7 +28,7 @@ function chrome-webstore-upndown(){
 
 }
 
-npm install -g chrome-webstore-upload-cli
+sudo npm install -g chrome-webstore-upload-cli
 
 rm -rf build
 rm -rf artifacts/*
