@@ -28,7 +28,6 @@ aliases:
       # misc
       GITHUB_USERNAME: rnd-at-emurgo
       GITHUB_EMAIL: rnd@emurgo.io
-      GIT_SHORT_COMMIT: ${CIRCLE_SHA1:0:7}
       CHROME_CODEBASE_URL: https://www.sample.com/dw/yoroi-extension.crx
       CHROME_WEBSTORE_API_ENDPOINT: https://www.googleapis.com/upload/chromewebstore/v1.1
       CHROME_DEV_APP_ID: febkioblpijdgicianpklkmolpbagnbo
