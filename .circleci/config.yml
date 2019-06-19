@@ -194,8 +194,7 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      - build-setup:
-          context: yoroi-frontend
+      - build-setup
       - test-brave:
           filters:
             branches:
@@ -218,7 +217,6 @@ workflows:
           requires:
             - build-setup
       - deploy-artifacts:
-          context: yoroi-frontend
           requires:
             - test-chrome
             - test-firefox
