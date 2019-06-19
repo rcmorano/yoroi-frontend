@@ -140,6 +140,9 @@ jobs:
       - *attach_workspace
       - *setenv
       - run: bash .circleci/e2e_tests.sh
+      # NOTE: this is here so uploads are parallelized
+      - run: bash .circleci/deploy_depends_install.sh
+      - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
           root: ~/repo
           paths: .
@@ -159,6 +162,9 @@ jobs:
       - *attach_workspace
       - *setenv
       - run: bash .circleci/e2e_tests.sh
+      # NOTE: this is here so uploads are parallelized
+      - run: bash .circleci/deploy_depends_install.sh
+      - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
           root: ~/repo
           paths: .
@@ -174,7 +180,6 @@ jobs:
       - *attach_workspace
       - *setenv
       - run: bash .circleci/deploy_depends_install.sh
-      - run: bash .circleci/s3_screenshots_upload.sh
       - run: bash .circleci/chrome_webstore_deploy.sh
       - run: bash .circleci/s3_artifacts_upload.sh
       - run: bash .circleci/pull_request_comment.sh
