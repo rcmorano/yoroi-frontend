@@ -28,14 +28,12 @@ function chrome-webstore-upndown(){
 
 }
 
-sudo npm install -g chrome-webstore-upload-cli
-
 rm -rf build
 rm -rf artifacts/*
 
-if [ "${TRAVIS_PULL_REQUEST}" != "false" ]
+if [ ! -z "${CIRCLE_PR_NUMBER}" ]
 then
-  export RELEASE_TAG="PR${TRAVIS_PULL_REQUEST}-${GIT_SHORT_COMMIT}"
+  export RELEASE_TAG="PR${CIRCLE_PR_NUMBER}-${GIT_SHORT_COMMIT}"
   export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
   export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
   export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
@@ -59,27 +57,27 @@ then
   chrome-webstore-upndown
 
 else
-  export RELEASE_TAG="$(echo ${TRAVIS_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
+  export RELEASE_TAG="$(echo ${CIRCLE_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
   export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
   export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
   export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
   echo "Building Yoroi-${RELEASE_TAG}..."
 
-  if [ "${TRAVIS_BRANCH}" == "develop" ]
+  if [ "${CIRCLE_BRANCH}" == "develop" ]
   then
     export TEMPLATE="staging"
     export APP_ID="${CHROME_DEV_APP_ID}"
     yoroi-build
     chrome-webstore-upndown
   fi
-  if [ "${TRAVIS_BRANCH}" == "staging" ]
+  if [ "${CIRCLE_BRANCH}" == "staging" ]
   then
     export TEMPLATE="staging"
     export APP_ID="${CHROME_STG_APP_ID}"
     yoroi-build
     chrome-webstore-upndown
   fi
-  if [ "${TRAVIS_BRANCH}" == "master" ]
+  if [ "${CIRCLE_BRANCH}" == "master" ]
   then
     export TEMPLATE="mainnet"
     export APP_ID="${CHROME_PRO_APP_ID}"

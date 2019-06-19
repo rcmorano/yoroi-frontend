@@ -19,6 +19,8 @@ aliases:
          - ~/.rustup
          - ~/.cargo
         key: generic-tools-cache-{{ checksum "package.json" }}
+  - &setenv
+      run: bash .circleci/set_dynamic_env.sh
   - &global_environment
       # runtime versions
       RUST_VERSION: 1.32.0
@@ -51,9 +53,14 @@ checkout:
   # borrowed from: https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
   post:
     - |
-        CIRCLE_PR_BASE_BRANCH=$(curl -su $GITHUB_USERNAME:$GITHUB_PAT https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH} | jq -r .base.ref)
+        # Get PR number if there is some open PR for develop|staging|master,
+        # even if circle doesn't provide it (triggers are for the branches).
+        # NOTE: we could have multiple PRs from the same branch and this
+        # snippet would only pick the last one
+        test -z "${CIRCLE_PR_NUMBER}" && CIRCLE_PR_NUMBER=$(bash .circleci/get_github_pr_for_associated_branch.sh)
         if [[ -n "${CIRCLE_PR_NUMBER}" ]]
         then
+            CIRCLE_PR_BASE_BRANCH=$(bash .circleci/get_github_pr_base_branch.sh)
             # Update PR refs for testing.
             FETCH_REFS="+${CIRCLE_PR_BASE_BRANCH}:${CIRCLE_PR_BASE_BRANCH}"
             FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
@@ -81,6 +88,7 @@ jobs:
 
     steps:
       - checkout
+      - *setenv
       # cancel builds from the same branch (since circle feature seems not working)
       - run: bash .circleci/stop_redundant_jobs.sh
       - *restore_cache
@@ -114,8 +122,8 @@ jobs:
 
     steps:
       - *attach_workspace
+      - *setenv
       - run: bash .circleci/e2e_tests.sh
-      - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
           root: ~/repo
           paths: .
@@ -130,8 +138,8 @@ jobs:
 
     steps:
       - *attach_workspace
+      - *setenv
       - run: bash .circleci/e2e_tests.sh
-      - run: bash .circleci/s3_screenshots_upload.sh
       - persist_to_workspace:
           root: ~/repo
           paths: .
@@ -149,8 +157,12 @@ jobs:
 
     steps:
       - *attach_workspace
+      - *setenv
       - run: bash .circleci/e2e_tests.sh
       - run: bash .circleci/s3_screenshots_upload.sh
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
 
   deploy-artifacts:
     environment:
@@ -161,6 +173,9 @@ jobs:
 
     steps:
       - *attach_workspace
+      - *setenv
+      - run: bash .circleci/deploy_depends_install.sh
+      - run: bash .circleci/s3_screenshots_upload.sh
       - run: bash .circleci/chrome_webstore_deploy.sh
       - run: bash .circleci/s3_artifacts_upload.sh
       - run: bash .circleci/pull_request_comment.sh
