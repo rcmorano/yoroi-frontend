@@ -33,11 +33,11 @@ rm -rf artifacts/*
 
 if [ ! -z "${CIRCLE_PR_NUMBER}" ]
 then
-  export RELEASE_TAG="PR${CIRCLE_PR_NUMBER}-${GIT_SHORT_COMMIT}"
+  export TEMPLATE="staging"
+  export RELEASE_TAG="${TEMPLATE}-PR${CIRCLE_PR_NUMBER}-${GIT_SHORT_COMMIT}"
   export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
   export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
   export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
-  export TEMPLATE="staging"
   echo "Building Yoroi-${RELEASE_TAG}..."
 
   set +x
@@ -57,15 +57,16 @@ then
   chrome-webstore-upndown
 
 else
-  export RELEASE_TAG="$(echo ${CIRCLE_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
-  export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
-  export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
-  export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
+
   echo "Building Yoroi-${RELEASE_TAG}..."
 
   if [ "${CIRCLE_BRANCH}" == "develop" ]
   then
     export TEMPLATE="staging"
+    export RELEASE_TAG="${TEMPLATE}-$(echo ${CIRCLE_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
+    export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
+    export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
+    export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
     export APP_ID="${CHROME_DEV_APP_ID}"
     yoroi-build
     chrome-webstore-upndown
@@ -73,6 +74,10 @@ else
   if [ "${CIRCLE_BRANCH}" == "staging" ]
   then
     export TEMPLATE="staging"
+    export RELEASE_TAG="${TEMPLATE}-$(echo ${CIRCLE_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
+    export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
+    export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
+    export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
     export APP_ID="${CHROME_STG_APP_ID}"
     yoroi-build
     chrome-webstore-upndown
@@ -80,6 +85,10 @@ else
   if [ "${CIRCLE_BRANCH}" == "master" ]
   then
     export TEMPLATE="mainnet"
+    export RELEASE_TAG="${TEMPLATE}-$(echo ${CIRCLE_BRANCH} | sed 's|/|-|g')-${GIT_SHORT_COMMIT}"
+    export ZIP_NAME="yoroi-${RELEASE_TAG}.zip"
+    export XPI_NAME="yoroi-${RELEASE_TAG}.xpi"
+    export CRX_NAME="yoroi-${RELEASE_TAG}.crx"
     export APP_ID="${CHROME_PRO_APP_ID}"
     yoroi-build
     chrome-webstore-upndown
