@@ -179,6 +179,7 @@ jobs:
       - run: bash .circleci/s3_artifacts_upload.sh
       - run: bash .circleci/pull_request_comment.sh
 
+  # this can be used to be triggered from other CI systems
   ondemand-build:
     environment:
       <<: *global_environment
@@ -208,13 +209,13 @@ workflows:
                 - l10n_develop
           requires:
             - build-setup
- #     - test-firefox:
- #         filters:
- #           branches:
- #             ignore:
- #               - l10n_develop
- #         requires:
- #           - build-setup
+#      - test-firefox:
+#          filters:
+#            branches:
+#              ignore:
+#                - l10n_develop
+#          requires:
+#            - build-setup
       - deploy-artifacts:
           requires:
             - test-chrome
