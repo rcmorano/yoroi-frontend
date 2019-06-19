@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -xeo pipefail
+# NOTE: removing +x mode can reveal credentials in circleci logs
+set +x
+set -eo pipefail
 
 cp -a artifacts/*crx .
 cp -a artifacts/*xpi .

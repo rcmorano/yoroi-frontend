@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# NOTE: removing +x mode can reveal credentials in circleci logs
+set +x
+set -eo pipefail
+
 # FIXME: move this to our own image and rebuild derivated ones
 # install depends if not present
 WEBSTORE_BIN=$(which webstore); if [ -z "${WEBSTORE_BIN}" ]; then sudo npm install -g chrome-webstore-upload-cli; fi

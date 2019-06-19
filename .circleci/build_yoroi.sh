@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -xeo pipefail
+# NOTE: removing +x mode can reveal credentials in circleci logs
+set +x
+set -eo pipefail
 
 if [ ! -e "build/${GIT_SHORT_COMMIT}.built" ]
 then

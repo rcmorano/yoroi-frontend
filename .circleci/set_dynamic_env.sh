@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# NOTE: removing +x mode can reveal credentials in circleci logs
+set +x
+set -eo pipefail
+
 # HACK: circle does not support composing environment from other env
 echo -e "export GIT_SHORT_COMMIT=${CIRCLE_SHA1:0:7}" >> $BASH_ENV
 echo -e "export REPO_SLUG=${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" >> $BASH_ENV

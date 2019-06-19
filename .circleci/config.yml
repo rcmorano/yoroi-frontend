@@ -194,7 +194,8 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      - build-setup
+      - build-setup:
+          context: yoroi-frontend
       - test-brave:
           filters:
             branches:
@@ -209,17 +210,18 @@ workflows:
                 - l10n_develop
           requires:
             - build-setup
-#      - test-firefox:
-#          filters:
-#            branches:
-#              ignore:
-#                - l10n_develop
-#          requires:
-#            - build-setup
+      - test-firefox:
+          filters:
+            branches:
+              ignore:
+                - l10n_develop
+          requires:
+            - build-setup
       - deploy-artifacts:
+          context: yoroi-frontend
           requires:
             - test-chrome
-#            - test-firefox
+            - test-firefox
       - ondemand-build:
           filters:
             branches:
