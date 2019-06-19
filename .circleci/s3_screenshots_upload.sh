@@ -27,7 +27,7 @@ do
     else
       OBJECT_KEY_BASEPATH="screenshots/${browser}/${BRANCH}"
     fi
-    aws s3 sync screenshots/${browser} "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}"
+    aws s3 sync --only-show-errors screenshots/${browser} "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}"
     
     rm -f /tmp/pr-screenshots-urls
     find screenshots/${browser} -type f | while read file;
@@ -70,6 +70,7 @@ do
         then
           DIFFERENCE_OBJECT_KEY="${DIFFERENCES_OBJECT_KEY}/${BASENAME}"
           DIFFERENCE_S3_URI="$(echo ${S3_ENDPOINT}/${DIFFERENCE_OBJECT_KEY} | sed 's| |%20|g')"
+          mkdir -p "$(dirname "${DIFFERENCES_OBJECT_KEY}/${BASENAME}")"
           cp -a difference.png "${DIFFERENCES_OBJECT_KEY}/${BASENAME}"
           echo "**- $(echo ${BASENAME} | sed 's|.png||'):**" >> /tmp/pr-differences-urls
           echo "[Base branch (${PR_BASE_BRANCH}) image](${BASE_BRANCH_S3_URI})" >> /tmp/pr-differences-urls
@@ -77,7 +78,7 @@ do
           echo "![${BASENAME}](${DIFFERENCE_S3_URI})" >> /tmp/pr-differences-urls
         fi
       done
-      aws s3 sync ${DIFFERENCES_OBJECT_KEY} "s3://${S3_BUCKET}/${DIFFERENCES_OBJECT_KEY}"
+      aws s3 sync --only-show-errors ${DIFFERENCES_OBJECT_KEY} "s3://${S3_BUCKET}/${DIFFERENCES_OBJECT_KEY}"
       if [ -e /tmp/pr-differences-urls ]
       then
         aws s3 cp /tmp/pr-differences-urls "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}/pr-differences-urls"
