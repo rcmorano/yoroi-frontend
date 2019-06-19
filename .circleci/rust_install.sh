@@ -24,5 +24,3 @@ do
     rustup target add ${RUST_TARGETS} --toolchain ${RUST_VERSION}
   fi
 done
-
-sudo apt-get install -qq -y python-pip imagemagick jq && sudo pip install awscli

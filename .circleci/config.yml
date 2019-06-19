@@ -84,7 +84,7 @@ jobs:
       # cancel builds from the same branch (since circle feature seems not working)
       - run: bash .circleci/stop_redundant_jobs.sh
       - *restore_cache
-      - run: bash .circleci/before_install.sh
+      - run: bash .circleci/rust_install.sh
 
       - run: npm ci
       - *save_cache

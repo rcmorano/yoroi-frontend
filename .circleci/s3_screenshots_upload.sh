@@ -16,6 +16,7 @@ test -z $SCREENSHOT_DIFF_THRESHOLD && SCREENSHOT_DIFF_THRESHOLD=0
 test -z $SCREENSHOT_DIFF_COLOR && SCREENSHOT_DIFF_COLOR=yellow
 
 # install depends if not present
+AWSCLI_BIN=$(which awscli); if [ -z "${AWSCLI_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy python-pip; sudo pip install awscli; fi
 JQ_BIN=$(which jq); if [ -z "${JQ_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy jq; fi
 COMPARE_BIN=$(which compare); if [ -z "${COMPARE_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy imagemagick; fi
 BC_BIN=$(which bc); if [ -z "${BC_BIN}" ]; then sudo apt-get update -qq; sudo apt-get install -qqy bc; fi
