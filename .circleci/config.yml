@@ -8,6 +8,16 @@ aliases:
   - &attach_workspace
       attach_workspace:
         at: ~/repo
+  - &persist_repo_to_workspace
+      persist_to_workspace:
+        root: ~/repo
+        paths: .
+  # using this
+  - &persist_screenshots_to_workspace
+      persist_to_workspace:
+        root: ~/repo
+        paths:
+          - screenshots
   - &restore_cache
       restore_cache:
         keys:
@@ -108,9 +118,7 @@ jobs:
       - run: bash .circleci/build_yoroi.sh
 
       # persist results to then use them in tests
-      - persist_to_workspace:
-          root: ~/repo
-          paths: .
+      - *persist_repo_to_workspace
 
   test-brave:
     environment:
@@ -124,9 +132,7 @@ jobs:
       - *attach_workspace
       - *setenv
       - run: bash .circleci/e2e_tests.sh
-      - persist_to_workspace:
-          root: ~/repo
-          paths: .
+      - *persist_screenshots_to_workspace
 
   test-chrome:
     environment:
@@ -140,9 +146,7 @@ jobs:
       - *attach_workspace
       - *setenv
       - run: bash .circleci/e2e_tests.sh
-      - persist_to_workspace:
-          root: ~/repo
-          paths: .
+      - *persist_screenshots_to_workspace
 
   test-firefox:
     environment:
@@ -159,9 +163,7 @@ jobs:
       - *attach_workspace
       - *setenv
       - run: bash .circleci/e2e_tests.sh
-      - persist_to_workspace:
-          root: ~/repo
-          paths: .
+      - *persist_screenshots_to_workspace
 
   deploy-artifacts:
     environment:
