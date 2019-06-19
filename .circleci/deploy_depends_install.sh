@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# NOTE: removing +x mode can reveal credentials in circleci logs
-set +x
-set -eo pipefail
+set -x
 
 # FIXME: move this to our own image and rebuild derivated ones
 # install depends if not present
