@@ -80,7 +80,9 @@ checkout:
             git fetch -u origin ${FETCH_REFS}
 
             # Checkout PR merge ref.
-            git checkout -qf "pr/${CIRCLE_PR_NUMBER}/merge"
+            git checkout -f "pr/${CIRCLE_PR_NUMBER}/merge"
+            echo "[+] Checked out '$(git rev-parse HEAD)' merge commit for PR${CIRCLE_PR_NUMBER} (${CIRCLE_BRANCH} + ${CIRCLE_PR_BASE_BRANCH})."
+            echo "    NOTE: commit used to tag artifacts will be the branch commit instead of the merge one so it's easily linked to this buildjob."
 
             # Test for merge conflicts.
             git branch --merged | grep ${CIRCLE_PR_BASE_BRANCH} > /dev/null
