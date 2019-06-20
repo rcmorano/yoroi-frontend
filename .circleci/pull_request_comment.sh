@@ -33,7 +33,7 @@ then
       cat >> /tmp/${browser}-pr-differences-comment.json <<EOF
 { "body": "
 <details>\n
-  <summary>E2E _${browser}_ screenshots differences between 'PR${PR_NUMBER}-${GIT_SHORT_COMMIT}' and base branch '${TRAVIS_BRANCH}'</summary>\n\n
+  <summary>E2E _${browser}_ screenshots differences between 'PR${PR_NUMBER}-${GIT_SHORT_COMMIT}' and base branch '${PR_BASE_BRANCH}'</summary>\n\n
 $(cat /tmp/${browser}-pr-differences-urls | while read line; do echo "\\n\\n  $line\\n\\n"; done)\n\n
 </details>\n
 "}
@@ -53,7 +53,7 @@ EOF
     fi
 
     # check if there is something to comment
-    for file in /tmp/${browser}-pr-collection-comment.json /tmp/${browser}-pr-differences-comment.json
+    for file in /tmp/${browser}-pr-differences-comment.json /tmp/${browser}-pr-collection-comment.json
     do
       if [ $(cat ${file} | wc -l) -gt 2 ]
       then

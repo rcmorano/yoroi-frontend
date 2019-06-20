@@ -31,18 +31,24 @@ do
     else
       OBJECT_KEY_BASEPATH="screenshots/${browser}/${BRANCH}"
     fi
-    aws s3 sync --only-show-errors screenshots/${browser} "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}"
-    
-    rm -f /tmp/pr-screenshots-urls
-    find screenshots/${browser} -type f | while read file;
-    do
-      BASENAME=$(echo ${file} | sed "s|^screenshots/${browser}/||")
-      OBJECT_KEY="${OBJECT_KEY_BASEPATH}/${BASENAME}"
-      S3_URI="$(echo ${S3_ENDPOINT}/${OBJECT_KEY} | sed 's| |%20|g')"
-      echo "**- $(echo ${BASENAME} | sed 's|.png||'):**" >> /tmp/pr-screenshots-urls
-      echo "![${BASENAME}](${S3_URI})" >> /tmp/pr-screenshots-urls
-    done
-    aws s3 cp /tmp/pr-screenshots-urls "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}/pr-screenshots-urls"
+
+    # since we cannot control if circleci triggered jobs by type (PR), we control here if we need
+    # to upload artifacts or not if this was triggered by a normal branch
+    if [[ ! -z $(echo ${BRANCH} | grep "^develop$\|^staging$\|^master$") ]] || [[ ! -z "${PR_NUMBER}" ]]
+    then
+      aws s3 sync --only-show-errors screenshots/${browser} "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}"
+      
+      rm -f /tmp/pr-screenshots-urls
+      find screenshots/${browser} -type f | while read file;
+      do
+        BASENAME=$(echo ${file} | sed "s|^screenshots/${browser}/||")
+        OBJECT_KEY="${OBJECT_KEY_BASEPATH}/${BASENAME}"
+        S3_URI="$(echo ${S3_ENDPOINT}/${OBJECT_KEY} | sed 's| |%20|g')"
+        echo "**- $(echo ${BASENAME} | sed 's|.png||'):**" >> /tmp/pr-screenshots-urls
+        echo "![${BASENAME}](${S3_URI})" >> /tmp/pr-screenshots-urls
+      done
+      aws s3 cp /tmp/pr-screenshots-urls "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}/pr-screenshots-urls"
+    fi
     
     # compare with PR base branch's screenshots and add diferences
     if [ ! -z "${PR_NUMBER}" ]
