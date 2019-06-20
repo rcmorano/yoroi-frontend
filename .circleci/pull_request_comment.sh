@@ -3,6 +3,7 @@
 # NOTE: removing +x mode can reveal credentials in circleci logs
 set +x
 set -eo pipefail
+set -x
 
 GITHUB_PAT="${GITHUB_PAT}"
 REPO_SLUG="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
