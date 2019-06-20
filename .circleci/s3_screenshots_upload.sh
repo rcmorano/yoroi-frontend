@@ -58,7 +58,6 @@ do
         BASE_BRANCH_S3_URI="$(echo ${S3_ENDPOINT}/${BASE_BRANCH_OBJECT_KEY} | sed 's| |%20|g')"
         PR_OBJECT_KEY="${OBJECT_KEY_BASEPATH}/${BASENAME}"
         PR_S3_URI="$(echo ${S3_ENDPOINT}/${PR_OBJECT_KEY} | sed 's| |%20|g')"
-        # TODO: implement cache (tho it might not make much sense)
         if [ ! -e "${BASE_BRANCH_OBJECT_KEY}" ]
         then
           curl -sLo base-image.png "${BASE_BRANCH_S3_URI}"
@@ -68,7 +67,10 @@ do
             cp -a "${file}" base-image.png
           fi
         fi
+        # compare will cause the script fail
+        set +e
         DIFF_VALUE=$(compare -metric RMSE -lowlight-color transparent -highlight-color ${SCREENSHOT_DIFF_COLOR} base-image.png "${file}" difference.png 2>&1| awk '{print $1}' | sed 's|\.||g')
+        set -e
         if [ $DIFF_VALUE -gt $SCREENSHOT_DIFF_THRESHOLD ]
         then
           DIFFERENCE_OBJECT_KEY="${DIFFERENCES_OBJECT_KEY}/${BASENAME}"

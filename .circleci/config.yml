@@ -180,6 +180,8 @@ jobs:
       - run: bash .circleci/deploy_depends_install.sh
       - run: bash .circleci/s3_screenshots_upload.sh
       - run: bash .circleci/chrome_webstore_deploy.sh
+      # TODO: GH releases deploy, this is a dummy script right now.
+      # We prolly could use dpl CLI tool from Travis: https://github.com/travis-ci/dpl#github-releases
       - run: bash .circleci/s3_artifacts_upload.sh
       - run: bash .circleci/pull_request_comment.sh
 
