@@ -59,34 +59,9 @@ aliases:
       # GOOGLE_CLIENT_SECRET
       # GOOGLE_REFRESH_TOKEN
 
-checkout:
-  # borrowed from: https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
-  post:
-    - |
-        # Get PR number if there is some open PR for develop|staging|master,
-        # even if circle doesn't provide it (triggers are for the branches).
-        # NOTE: we could have multiple PRs from the same branch and this
-        # snippet would only pick the last one
-        test -z "${CIRCLE_PR_NUMBER}" && CIRCLE_PR_NUMBER=$(bash .circleci/get_github_pr_for_associated_branch.sh)
-        if [[ -n "${CIRCLE_PR_NUMBER}" ]]
-        then
-            CIRCLE_PR_BASE_BRANCH=$(bash .circleci/get_github_pr_base_branch.sh)
-            # Update PR refs for testing.
-            FETCH_REFS="+${CIRCLE_PR_BASE_BRANCH}:${CIRCLE_PR_BASE_BRANCH}"
-            FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
-            FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
-
-            # Retrieve the refs
-            git fetch -u origin ${FETCH_REFS}
-
-            # Checkout PR merge ref.
-            git checkout -f "pr/${CIRCLE_PR_NUMBER}/merge"
-
-            # Test for merge conflicts.
-            git branch --merged | grep ${CIRCLE_PR_BASE_BRANCH} > /dev/null
-            git branch --merged | grep "pr/${CIRCLE_PR_NUMBER}/head" > /dev/null
-        fi
-
+#checkout:
+#  # borrowed from: https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
+#  post:
 jobs:
   build-setup:
     environment:
@@ -100,14 +75,38 @@ jobs:
       - checkout
       - *setenv
       - run:
-          name: Checkout info
+          name: Checkout merge-commit if this is a PR build
           command: |
+            # Get PR number if there is some open PR for develop|staging|master,
+            # even if circle doesn't provide it (triggers are for the branches).
+            # NOTE: we could have multiple PRs from the same branch and this
+            # snippet would only pick the last one
+            test -z "${CIRCLE_PR_NUMBER}" && CIRCLE_PR_NUMBER=$(bash .circleci/get_github_pr_for_associated_branch.sh)
+            if [[ -n "${CIRCLE_PR_NUMBER}" ]]
+            then
+                CIRCLE_PR_BASE_BRANCH=$(bash .circleci/get_github_pr_base_branch.sh)
+                # Update PR refs for testing.
+                FETCH_REFS="+${CIRCLE_PR_BASE_BRANCH}:${CIRCLE_PR_BASE_BRANCH}"
+                FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
+                FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
+
+                # Retrieve the refs
+                git fetch -u origin ${FETCH_REFS}
+
+                # Checkout PR merge ref.
+                git checkout -f "pr/${CIRCLE_PR_NUMBER}/merge"
+
+                # Test for merge conflicts.
+                git branch --merged | grep ${CIRCLE_PR_BASE_BRANCH} > /dev/null
+                git branch --merged | grep "pr/${CIRCLE_PR_NUMBER}/head" > /dev/null
+            fi
+
             if [ ! -z "${CIRCLE_PR_BASE_BRANCH}" ]
             then
               echo "[+] Checked out '$(git rev-parse HEAD)' merge commit for PR${CIRCLE_PR_NUMBER} (${CIRCLE_BRANCH} + ${CIRCLE_PR_BASE_BRANCH})."
               echo "    NOTE: commit used to tag artifacts will be the branch commit '${GIT_SHORT_COMMIT}' instead of the merge one so it's easily linked to this buildjob."
             else
-              echo "[+] Building branch commit '${GIT_SHOR_COMMIT}'"
+              echo "[+] Building branch commit '${GIT_SHORT_COMMIT}'"
             fi
       # cancel builds from the same branch (since circle feature seems not working)
       - run: bash .circleci/stop_redundant_jobs.sh
