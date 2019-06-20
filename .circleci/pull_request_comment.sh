@@ -54,14 +54,14 @@ EOF
 
     # check if there is something to comment
     for file in /tmp/${browser}-pr-collection-comment.json /tmp/${browser}-pr-differences-comment.json
-    if [ $(cat ${file} | wc -l) -gt 2 ]
-    then
-      set +e; aws s3 cp "${file}" "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}/$(basename "${file}")"; set -e
-      curl -s -H "Authorization: token ${GITHUB_PAT}" \
-        -X POST --data @${file} \
-        "https://api.github.com/repos/${REPO_SLUG}/issues/${PR_NUMBER}/comments"
-    fi
-
+    do
+      if [ $(cat ${file} | wc -l) -gt 2 ]
+      then
+        set +e; aws s3 cp "${file}" "s3://${S3_BUCKET}/${OBJECT_KEY_BASEPATH}/$(basename "${file}")"; set -e
+        curl -s -H "Authorization: token ${GITHUB_PAT}" \
+          -X POST --data @${file} \
+          "https://api.github.com/repos/${REPO_SLUG}/issues/${PR_NUMBER}/comments"
+      fi
+    done
   done
-
 fi

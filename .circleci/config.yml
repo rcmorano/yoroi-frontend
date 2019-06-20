@@ -81,8 +81,6 @@ checkout:
 
             # Checkout PR merge ref.
             git checkout -f "pr/${CIRCLE_PR_NUMBER}/merge"
-            echo "[+] Checked out '$(git rev-parse HEAD)' merge commit for PR${CIRCLE_PR_NUMBER} (${CIRCLE_BRANCH} + ${CIRCLE_PR_BASE_BRANCH})."
-            echo "    NOTE: commit used to tag artifacts will be the branch commit instead of the merge one so it's easily linked to this buildjob."
 
             # Test for merge conflicts.
             git branch --merged | grep ${CIRCLE_PR_BASE_BRANCH} > /dev/null
@@ -101,6 +99,16 @@ jobs:
     steps:
       - checkout
       - *setenv
+      - run:
+          name: Checkout info
+          command: |
+            if [ ! -z "${CIRCLE_PR_BASE_BRANCH}" ]
+            then
+              echo "[+] Checked out '$(git rev-parse HEAD)' merge commit for PR${CIRCLE_PR_NUMBER} (${CIRCLE_BRANCH} + ${CIRCLE_PR_BASE_BRANCH})."
+              echo "    NOTE: commit used to tag artifacts will be the branch commit '${GIT_SHORT_COMMIT}' instead of the merge one so it's easily linked to this buildjob."
+            else
+              echo "[+] Building branch commit '${GIT_SHOR_COMMIT}'"
+            fi
       # cancel builds from the same branch (since circle feature seems not working)
       - run: bash .circleci/stop_redundant_jobs.sh
       - *restore_cache
