@@ -46,6 +46,7 @@ aliases:
       SCREENSHOT_DIFF_THRESHOLD: 0
       SCREENSHOT_DIFF_COLOR: yellow
       BROWSERS: brave chrome firefox
+      GITHUB_BUILD_BRANCHES: develop staging master
 
       # Encrypted env vars from ui:
       # AWS_ACCESS_KEY_ID: "${ARTIFACTS_KEY}"
@@ -60,7 +61,6 @@ aliases:
       # GOOGLE_REFRESH_TOKEN
 
 #checkout:
-#  # borrowed from: https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
 #  post:
 jobs:
   build-setup:
@@ -75,6 +75,8 @@ jobs:
       - checkout
       - *setenv
       - run:
+          # NOTES: step based on https://discuss.circleci.com/t/show-test-results-for-prospective-merge-of-a-github-pr/1662/8
+          # This is not working on circle's checkout/post hook for some reason, so we moved it here
           name: Checkout merge-commit if this is a PR build
           command: |
             # Get PR number if there is some open PR for develop|staging|master,
