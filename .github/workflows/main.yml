@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  # todo: more sensible trigger
   schedule:
   - cron: "0 2 * * 1-5"
 
@@ -10,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - steps:
       - uses: actions/checkout@v2
       - name: Use Node.js
         uses: actions/setup-node@v1
@@ -18,27 +18,18 @@ jobs:
           # todo: nvm use ?
           node-version: '12.x'
       - run: npm install
-      - run: npm run byron-dev -- --nightly
-    - uses: trmcnvn/chrome-addon@v2
-    - name: publish nightly
-      run: echo Hello, world!
-      run: npm install
-      npm run build -- --env 'shelley-testnet' && npm run compress -- --env 'shelley-testnet' --app-id 'yoroi' --zip-only --codebase 'https://yoroiwallet.com/dw/yoroi-extension.crx' --key ./shelley-production.pem",
-    - name: Run a multi-line script
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
-
-- name: Chrome Addon Action
-  uses: trmcnvn/chrome-addon@v2
-  with:
-    # ID of the extension that you are updating
-    extension: # optional
-    # Path to a .zip of your addon
-    zip: # optional
-    # Google OAuth2 client id
-    client-id: # optional
-    # Google OAuth2 client secret
-    client-secret: # optional
-    # Google OAuth2 refresh token
-    refresh-token: # optional
+      - run: npm run shelley-prod -- --nightly
+      - run: npm run compress -- --env 'shelley-testnet' --app-id 'yoroi-nightly' --zip-only --codebase 'https://yoroiwallet.com/dw/yoroi-extension-nightly.crx' --key ./nightly-key.pem
+      - name: publish nightly
+        uses: trmcnvn/chrome-addon@v2
+        with:
+          # ID of the extension that you are updating
+          extension: # optional
+          # Path to a .zip of your addon
+          zip: # optional
+          # Google OAuth2 client id
+          client-id: # optional
+          # Google OAuth2 client secret
+          client-secret: # optional
+          # Google OAuth2 refresh token
+          refresh-token: # optional
