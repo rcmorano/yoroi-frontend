@@ -6,7 +6,6 @@ const argv = require('minimist')(process.argv.slice(2));
 // override NODE_ENV for ConfigWebpackPlugin
 process.env.NODE_CONFIG_ENV = argv.env;
 
-
 export function buildProd(env: string) {
   const shell = require('shelljs');
 
